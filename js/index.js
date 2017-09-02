@@ -6,12 +6,16 @@ createGrid();
 cnv.addEventListener("click", function (evt) {
 	
 	var mousePos = getMousePos(cnv, evt);
+	
+	let [xGridCellStart, yInsideGridCell] = getCellCoord(mousePos.x, 
+														 mousePos.y);
 
 	// FIX?
-	paintCell(mousePos.x, mousePos.y, cnv);
-	paintCell(mousePos.x, mousePos.y, cnv);
+	paintCell(xGridCellStart, yInsideGridCell, cnv);
+	paintCell(xGridCellStart, yInsideGridCell, cnv);
 
 });
+
 
 var step = document.getElementById("step-button");
 step.addEventListener("click", function(){
@@ -20,6 +24,7 @@ step.addEventListener("click", function(){
 
 
 
+// ***************** Module Functions *********************
 function createGrid() {
 	
 	let context = cnv.getContext("2d");	
@@ -52,7 +57,6 @@ function createGrid() {
 }
 
 function getMousePos(canvas, evt) {
-	// body...
 
 	var rect = canvas.getBoundingClientRect();
 	return {
@@ -61,18 +65,11 @@ function getMousePos(canvas, evt) {
 	};
 }
 
-function paintCell(x, y, canvas) {
-	// body...
-
+function paintCell(xGridCellStart, yInsideGridCell, canvas) {
+	
 	let context = canvas.getContext("2d");
-	context.strokeStyle = "rgba(135, 0, 0, 1)";
-
-	let factorX = parseInt(x / 20);
-	let factorY = parseInt(y / 20);
-
-	let xGridCellStart = factorX * 20;
-
-	let yInsideGridCell = factorY * 20;
+	context.strokeStyle = "rgba(135, 0, 0, 1)";		
+	
 	let yGridCellEnd = yInsideGridCell + 20;
 
 	while (yInsideGridCell < yGridCellEnd){
@@ -87,3 +84,11 @@ function paintCell(x, y, canvas) {
 	}
 }
 
+function getCellCoord(x, y){
+
+	let factorX = parseInt(x / 20);
+	let factorY = parseInt(y / 20);	
+
+	return [factorX * 20, factorY * 20];
+}
+// *********************************************************
