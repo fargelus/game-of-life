@@ -2,7 +2,7 @@
 
 var cnv = document.getElementById("canvas");
 
-var coordsArr = [];
+var livingCellCoords = [];
 
 createGrid();
 
@@ -17,15 +17,15 @@ cnv.addEventListener("click", function (evt) {
 	let coordObj = {x: xGridCellStart, 
 					y: yInsideGridCell};
 
-	coordsArr.push(coordObj);
+	livingCellCoords.push(coordObj);
 
 	// FIX?
 	paintCell(xGridCellStart, yInsideGridCell);
 	paintCell(xGridCellStart, yInsideGridCell);
 
 	// debug output
-	// for (var i = 0; i < coordsArr.length; ++i) {
-	// 	console.log("x: " + coordsArr[i].x + "\ny: " + coordsArr[i].y);
+	// for (var i = 0; i < livingCellCoords.length; ++i) {
+	// 	console.log("x: " + livingCellCoords[i].x + "\ny: " + livingCellCoords[i].y);
 	// }
 });
 
@@ -41,9 +41,9 @@ function refresh(){
 	createGrid();	
 
 	// рендерим все живые клетки
-	for(let i = 0; i < coordsArr.length; ++i) {		
-		paintCell(coordsArr[i].x, coordsArr[i].y);
-		paintCell(coordsArr[i].x, coordsArr[i].y);
+	for(let i = 0; i < livingCellCoords.length; ++i) {		
+		paintCell(livingCellCoords[i].x, livingCellCoords[i].y);
+		paintCell(livingCellCoords[i].x, livingCellCoords[i].y);
 	}
 	
 }
@@ -83,18 +83,63 @@ function createGrid() {
 
 function makeStep() {	
 	
-	// проверка на гибель на след. шаге
-	let newCoords = [];
-	for(let i = 0; i < coordsArr.length; ++i) {
+	let birthArr = [];
+	let nextGen = [];
 
-		let aliveNeigbours = countNeighbours(coordsArr[i].x, 
-											 coordsArr[i].y);		
+	for(let i = 0; i < livingCellCoords.length; ++i) {
 
-		if (aliveNeigbours == 2 || aliveNeigbours == 3)
-			newCoords.push( coordsArr[i] );
+		let x = livingCellCoords[i].x;
+		let y = livingCellCoords[i].y;
+		
+		let allNeighbours = getNeighbours(x, y);
+
+
+		// ***** DEBUG ***** //
+		if (i > 0)
+			console.log("\n");
+
+		console.log("cellX: " + x + "\ncellY: " + y);
+		// ***************** //
+
+		// получить пустых соседей клетки
+		let emptyNeighbours = getArrayDistract(allNeighbours, 
+			livingCellCoords);		
+
+		for (let j = 0; j < emptyNeighbours.length; ++j) {
+
+			let emptyCellX = emptyNeighbours[j].x;
+			let emptyCellY = emptyNeighbours[j].y;
+
+			// ***** DEBUG ***** //
+			console.log("neighbourX: " + emptyCellX + 
+				"\nneighbourY: " + emptyCellY);
+
+			console.log( "Live Neighbours: " 
+				+ isBirth(emptyCellX, emptyCellY) );
+			// ***************** //
+
+			if ( isBirth(emptyCellX, emptyCellY) ) {
+				
+				// устраняем дублирование
+				if ( containsObject(birthArr, emptyNeighbours[j]) === false )
+					birthArr.push( emptyNeighbours[j] );
+		
+			}
+
+		}
+
+		let aliveNeighbours = countLiveNeighbours( allNeighbours );
+
+		if (aliveNeighbours === 2 || aliveNeighbours === 3)
+			nextGen.push( livingCellCoords[i] );
 	}
-	
-	coordsArr = newCoords;
+
+	// console.log( birthArr );
+
+	// console.log("Before concat: " + nextGen);
+	nextGen = nextGen.concat( birthArr );	
+
+	livingCellCoords = nextGen;
 	refresh();
 }
 
@@ -130,7 +175,7 @@ function paintCell(xGridCellStart, yInsideGridCell) {
 }
 
 // получить к-ты начала клетки (левый верхний угол)
-function getCellCoord(x, y){
+function getCellCoord(x, y) {
 
 	let factorX = parseInt(x / 20);
 	let factorY = parseInt(y / 20);	
@@ -139,15 +184,42 @@ function getCellCoord(x, y){
 }
 
 // содержит ли массив объект
-function containsObject(arr, obj){
+function containsObject(arr, obj) {
 	return arr.some(el => el.x === obj.x && el.y === obj.y);	
 }
 
-// подсчет кол-ва живых соседей
-function countNeighbours(checkedCellX, checkedCellY) {		
-	// console.log("x: " + checkedCellX, "y: " + checkedCellY);
+// вычитание массивов координат
+function getArrayDistract(minuendArr, subtrahendArr) {
+	return minuendArr.filter( val => !containsObject(subtrahendArr, val) );
+}
 
-	let neighbours = 0;
+// рождается ли пустая клетка
+function isBirth(x, y) {
+	
+	let neighboursCoords = getNeighbours(x, y);
+	let neigboursAliveNumber = countLiveNeighbours(neighboursCoords);	
+
+	return neigboursAliveNumber === 3;
+}
+
+// подсчет кол-ва живых соседей
+function countLiveNeighbours(neighboursCoords) {
+
+	// counter -> текущее знач-е счетчика
+	// coordObj -> текущие кординаты проверяемой клетки
+	return neighboursCoords.reduce( (counter, coordObj) => {
+
+		if ( containsObject(livingCellCoords, coordObj) )
+			counter++;
+
+		return counter;
+	}, 0);			
+}
+
+// получить координаты всех соседей клетки
+function getNeighbours(checkedCellX, checkedCellY){
+
+	let neighboursCoords = [];
 
 	for(let currentCellY = checkedCellY - 20; 
 			currentCellY <= checkedCellY + 20; 
@@ -157,18 +229,13 @@ function countNeighbours(checkedCellX, checkedCellY) {
 				currentCellX <= checkedCellX + 20; 
 				currentCellX += 20)
 		{
-
 			if (currentCellX === checkedCellX 
 				&& currentCellY === checkedCellY) continue;
 
-			
-			let currentCellCoord = {x: currentCellX, y: currentCellY};
-
-			if (containsObject(coordsArr, currentCellCoord))
-				neighbours++;
+			neighboursCoords.push({x: currentCellX, y: currentCellY});
 		}
 
-	return neighbours;
+	return neighboursCoords;
 }
 
 // *********************************************************
