@@ -4,6 +4,8 @@ var cnv = document.getElementById("canvas");
 
 var livingCellCoords = [];
 
+var isPause = false;
+
 createGrid();
 
 // canvas grid click
@@ -11,17 +13,17 @@ cnv.addEventListener("click", function (evt) {
 	
 	var mousePos = getMousePos(evt);
 	
-	let [xGridCellStart, yInsideGridCell] = getCellCoord(mousePos.x, 
+	let [xGridCellStart, yGridCellStart] = getCellCoord(mousePos.x, 
 														 mousePos.y);	
 	// сохраняем координаты клетки
 	let coordObj = {x: xGridCellStart, 
-					y: yInsideGridCell};
+					y: yGridCellStart};
 
 	livingCellCoords.push(coordObj);
 
 	// FIX?
-	paintCell(xGridCellStart, yInsideGridCell);
-	paintCell(xGridCellStart, yInsideGridCell);
+	paintCell(xGridCellStart, yGridCellStart);
+	paintCell(xGridCellStart, yGridCellStart);
 
 	// debug output
 	// for (var i = 0; i < livingCellCoords.length; ++i) {
@@ -30,13 +32,21 @@ cnv.addEventListener("click", function (evt) {
 });
 
 
-var step = document.getElementById("step-button");
-step.addEventListener("click", makeStep);	
+var stepBtn = document.getElementById("step-button");
+stepBtn.addEventListener("click", makeStep);
 
+var clearBtn = document.getElementById("clear-button");
+clearBtn.addEventListener("click", createGrid);
+
+var runBtn = document.getElementById("run-button");
+runBtn.addEventListener("click", run);
+
+var pauseBtn = document.getElementById("pause-button");
+pauseBtn.addEventListener("click", pause);
 
 
 // ***************** Module Functions *********************
-function refresh(){
+function refresh() {
 
 	createGrid();	
 
@@ -81,8 +91,8 @@ function createGrid() {
 	}
 }
 
-function makeStep() {	
-	
+function makeStep() {
+
 	let birthArr = [];
 	let nextGen = [];
 
@@ -143,6 +153,33 @@ function makeStep() {
 	refresh();
 }
 
+function pause() {
+	
+	isPause = !isPause;
+
+	if (!isPause)
+		run();
+}
+
+function run() {			
+
+	if (isPause)
+		return;
+
+	let prevGen = livingCellCoords.slice();	
+
+	makeStep();
+
+	if ( _.isEqual(livingCellCoords, prevGen) 
+		|| livingCellCoords.length === 0){
+
+		console.log("break");
+		return;
+	}		
+	
+	setTimeout(run, 200);
+}
+
 // получить к-ты клика пользователя на сетке
 function getMousePos(evt) {
 
@@ -154,23 +191,23 @@ function getMousePos(evt) {
 }
 
 // раскрасить живую клетку
-function paintCell(xGridCellStart, yInsideGridCell) {
+function paintCell(xGridCellStart, yGridCellStart) {
 	
 	let context = cnv.getContext("2d");
 
 	context.strokeStyle = "rgba(135, 0, 0, 1)";
 	
-	let yGridCellEnd = yInsideGridCell + 20;
+	let yGridCellEnd = yGridCellStart + 20;
 
-	while (yInsideGridCell < yGridCellEnd){
+	while (yGridCellStart < yGridCellEnd){
 
 		context.beginPath();
-			context.moveTo(xGridCellStart, yInsideGridCell);
-			context.lineTo(xGridCellStart + 20, yInsideGridCell);
+			context.moveTo(xGridCellStart, yGridCellStart);
+			context.lineTo(xGridCellStart + 20, yGridCellStart);
 			context.stroke();
 		context.closePath();
 
-		++yInsideGridCell;
+		++yGridCellStart;
 	}
 }
 
