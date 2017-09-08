@@ -39,7 +39,12 @@ var clearBtn = document.getElementById("clear-button");
 clearBtn.addEventListener("click", createGrid);
 
 var runBtn = document.getElementById("run-button");
-runBtn.addEventListener("click", run);
+runBtn.addEventListener("click", 
+						function () {
+										isPause = false;
+										run();
+									}
+						);
 
 var pauseBtn = document.getElementById("pause-button");
 pauseBtn.addEventListener("click", pause);
