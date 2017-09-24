@@ -14,6 +14,8 @@
 	// на двумерной конечной плоскости
 	let renderCells = [];
 
+	let cellSize = 20;
+
 	let isPause = false;
 
 	// класс Клетка: 
@@ -53,18 +55,22 @@
 
 		}
 
+		// окрестность Мура
 		fillEmptyNeighbours() {
 
-			for(let currentCellY = this.cellY - 20; currentCellY <= this.cellY + 20; 
-				currentCellY += 20)
+			for(let currentCellY = this.cellY - cellSize; 
+				currentCellY <= this.cellY + cellSize; 
+				currentCellY += cellSize)
 
-				for(let currentCellX = this.cellX - 20; currentCellX <= this.cellX + 20; 
-						currentCellX += 20) 
+				for(let currentCellX = this.cellX - cellSize; 
+					currentCellX <= this.cellX + cellSize; 
+						currentCellX += cellSize) 
 				{
 
 					if (currentCellX === this.cellX
 						&& currentCellY === this.cellY) continue;
 
+					// по умолчанию все соседи -- пустые
 					let cell = new Cell(currentCellX, currentCellY, false);
 
 					// сохраняем инф-ю о пустых клетках
@@ -74,34 +80,37 @@
 
 		}
 
-		// уточнить инф-ю о соседях и их кол-ве
-		updateNeighbours() {			
+		// уточнить инф-ю о соседях и их кол-ве(!для живой клетки)
+		updateNeighbours() {						
 
 			let neighbours = this.emptyNeighbours;
 			let neighboursLen = neighbours.length;
 
 			// !!! для рождения
-			// сначала обновляем соседей			
-			if (this.cellAlive) {
-				for(let j = 0; j < neighboursLen; ++j) {
+			// сначала обновляем соседей									
+			for(let j = 0; j < neighboursLen; ++j) {
 
-					// только если сосед мертв(устраняем дублирование)
-					if (containsObject(gridAliveCells, neighbours[j]) === false) {
+				// только если сосед мертв(устраняем дублирование)
+				if (neighbours[j].isAlive === false) {
 
-						console.log("Dead neighbours");
+					console.log("Dead neighbours");
 
-						// заполним соседей
-						neighbours[j].fillEmptyNeighbours();
-					
-						// подсчет живых соседей
-						neighbours[j].updateNeighbours();
-					}
+					// заполним соседей						
+					neighbours[j].fillEmptyNeighbours();
+
+					neighbours[j].decideDestiny();					
 				}
-			}
+			}		
+
+			this.decideDestiny();
+		}
+
+		decideDestiny(){
 
 			// оставить только пустых соседей
-			this.emptyNeighbours = getArrayDistract(this.emptyNeighbours, gridAliveCells);
-			// console.log(this.emptyNeighbours.length);			
+			this.emptyNeighbours = getArrayDistract(this.emptyNeighbours,
+													gridAliveCells);
+
 			this.aliveNeighboursCounter = 8 - this.emptyNeighbours.length;			
 			
 			console.log("aliveNeighboursCounter: " + this.aliveNeighboursCounter);
@@ -116,7 +125,7 @@
 			else{
 				this.cellAlive = (this.aliveNeighboursCounter === 3);
 				console.log(this.cellAlive);
-			}
+			}	
 		}
 
 		get neighbours() {
@@ -251,8 +260,8 @@
 	function updateBeyondBoundsCoords(coordX, coordY){
 
 		// граница -- это ширина/высота минус размер клетки
-		let boundX = cnv.width - 20;
-		let boundY = cnv.height - 20;
+		let boundX = cnv.width - cellSize;
+		let boundY = cnv.height - cellSize;
 
 		let isBeyondBoundX = coordX > boundX || coordX < 0;
 		let isBeyondBoundY = coordY > boundY || coordY < 0;
