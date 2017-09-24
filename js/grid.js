@@ -5,9 +5,16 @@
 	"use strict"
 	
 	// module vars
-	var cnv = document.getElementById("canvas");
-	var gridAliveCells = [];
-	var isPause = false;
+	let cnv = document.getElementById("canvas");	
+
+	// корд-ты клеток в бесконечной плоскости
+	let gridAliveCells = [];
+
+	// коорд-ты клетки 
+	// на двумерной конечной плоскости
+	let renderCells = [];
+
+	let isPause = false;
 
 	// класс Клетка: 
 	// знает свои координаты, состояние, координаты соседей
@@ -130,10 +137,10 @@
 	}
 
 	// buttons
-	var stepBtn = document.getElementById("step-button");
-	var clearBtn = document.getElementById("clear-button");
-	var runBtn = document.getElementById("run-button");
-	var pauseBtn = document.getElementById("pause-button");
+	let stepBtn = document.getElementById("step-button");
+	let clearBtn = document.getElementById("clear-button");
+	let runBtn = document.getElementById("run-button");
+	let pauseBtn = document.getElementById("pause-button");
 
 	createGrid();
 
@@ -143,8 +150,8 @@
 	cnv.addEventListener("click", function (evt) {
 		
 		// определим кординаты клика
-		var mousePos = getMousePos(evt);
-		
+		let mousePos = getMousePos(evt);
+
 		// определим к-ты клетки
 		let [xGridCellStart, yGridCellStart] = getCellCoord(mousePos.x, 
 															mousePos.y);
@@ -153,6 +160,7 @@
 
 		// сохраним инф-ию о живой клетке
 		gridAliveCells.push(cell);
+		renderCells.push(cell);
 				
 		paintCell(xGridCellStart, yGridCellStart);
 		paintCell(xGridCellStart, yGridCellStart);		
@@ -160,7 +168,10 @@
 
 	stepBtn.addEventListener("click", makeStep);
 
-	clearBtn.addEventListener("click", createGrid);
+	clearBtn.addEventListener("click", function(){
+									   	gridAliveCells = [];
+									   	createGrid();
+									});
 
 	runBtn.addEventListener("click", function () {
 										isPause = false;
@@ -181,9 +192,9 @@
 		createGrid();	
 
 		// рендерим все живые клетки
-		for(let i = 0; i < gridAliveCells.length; ++i) {		
-			paintCell(gridAliveCells[i].x, gridAliveCells[i].y);
-			paintCell(gridAliveCells[i].x, gridAliveCells[i].y);
+		for(let i = 0; i < renderCells.length; ++i) {		
+			paintCell(renderCells[i].x, renderCells[i].y);
+			paintCell(renderCells[i].x, renderCells[i].y);
 		}
 	
 	}
@@ -192,7 +203,7 @@
 
 		let context = cnv.getContext("2d");	
 
-		// after prev call
+		// after prev call		
 		context.clearRect(0, 0, cnv.width, cnv.height);
 
 		context.fillStyle = "white"; // canvas color
@@ -234,7 +245,44 @@
 		}
 	}
 
-	function makeStep() {		
+	// Описание: Вышла ли клетка за границы вселенной
+	// Вход: Коорд-ты рожденной клетки
+	// Выход: Новые коорд-ты клетки	
+	function updateBeyondBoundsCoords(coordX, coordY){
+
+		// граница -- это ширина/высота минус размер клетки
+		let boundX = cnv.width - 20;
+		let boundY = cnv.height - 20;
+
+		let isBeyondBoundX = coordX > boundX || coordX < 0;
+		let isBeyondBoundY = coordY > boundY || coordY < 0;
+
+		let toroidCoordX = isBeyondBoundX ? 
+						   Math.abs(Math.abs(coordX % cnv.width)) : coordX;
+
+		let toroidCoordY = isBeyondBoundY ? 
+						   Math.abs(Math.abs(coordY % cnv.height)) : coordY;
+
+		return [].concat(toroidCoordX, toroidCoordY);
+	}
+
+	function updateRenderCells() {
+
+		renderCells = [];
+		for(let i = 0; i < gridAliveCells.length; ++i) {
+
+			let aliveCellX = gridAliveCells[i].x;
+			let aliveCellY = gridAliveCells[i].y;
+
+			let [renderCoordX, renderCoordY] = updateBeyondBoundsCoords(aliveCellX, 
+											 							aliveCellY);
+
+			let renderCell = new Cell(renderCoordX, renderCoordY);
+			renderCells.push(renderCell);
+		}
+	}
+
+	function makeStep() {
 		
 		let nextGen = [];
 
@@ -249,6 +297,7 @@
 
 			for(let j = 0; j < neighboursLen; ++j) {
 				if (neighbours[j].isAlive && !containsObject(nextGen, neighbours[j])) {
+
 					let cell = new Cell(neighbours[j].x, neighbours[j].y);
 					nextGen.push(cell);
 				}					
@@ -260,7 +309,9 @@
 			}
 		}		
 
-		gridAliveCells = nextGen;
+		gridAliveCells = nextGen;		
+
+		updateRenderCells();
 
 		console.log(gridAliveCells);
 
@@ -297,7 +348,7 @@
 	// получить к-ты клика пользователя на сетке
 	function getMousePos(evt) {
 
-		var rect = cnv.getBoundingClientRect();
+		let rect = cnv.getBoundingClientRect();
 		return {
 			x: evt.clientX - rect.left,
 			y: evt.clientY - rect.top
