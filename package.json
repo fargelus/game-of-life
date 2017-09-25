@@ -1,0 +1,23 @@
+{
+  "name": "lifegame",
+  "version": "1.0.0",
+  "description": "Conway's game of life impementation",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fargelus/Game-of-Life.git"
+  },
+  "author": "fargelus",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fargelus/Game-of-Life/issues"
+  },
+  "homepage": "https://github.com/fargelus/Game-of-Life#readme",
+  "devDependencies": {
+    "webpack": "^3.6.0",
+    "webpack-dev-server": "^2.8.2"
+  }
+}

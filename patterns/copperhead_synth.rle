@@ -1,0 +1,8 @@
+#N copperhead_synth
+#O
+#C Glider synthesis of copperhead
+#C http://conwaylife.com/wiki/Copperhead
+x = 34, y = 26, rule = B3/S23
+2bobo24bobo$3b2o24b2o$3bo26bo$18b2o$17b2o$14b2o3bo$13bobo$15bo3$20bo$
+3b2o14b2o8b2o$4b2o13bobo6b2o$3bo26bo$13bo$13b2o$12bobo$7b2o16b2o$bo4bo
+bo16bobo4bo$b2o5bo16bo5b2o$obo8b3o17bobo$13bo$12bo$22b3o$22bo$23bo!
