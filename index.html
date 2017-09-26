@@ -7,22 +7,27 @@
 
 <body>
 	<canvas id="canvas" width="800" height="600">
-		
+
 	</canvas>
-	
+
 	<div class="game-controls">
-		
+
 		<button type="button" id="run-button"> Run </button>
 		<button type="button" id="step-button"> Step </button>
 		<button type="button" id="pause-button"> Pause </button>
 		<button type="button" id="clear-button"> Clear </button>
-		
+
 		<br><br>
 			<label for="config-select"> Конфигурация: </label>
-			<select id="config-select"></select>
-				<option></option>		
+			<select id="config-select">
+				<optgroup label="Стандартные">
+					<option> Test 1 </option>
+				<optgroup label="Пользовательские">
+					<option> Test 2 </option>
+			</select>
 	</div>
-		
-	<script src="dist/bundle.js"></script>
+
+	<script src="underscore.js"></script>
+	<script src="grid.js"></script>
 </body>
 </html>

@@ -1,18 +1,16 @@
-import _ from './underscore';
-
 // grid.js -- Grid(Universe/Space) module
 
 (function () {
 
 	"use strict"
-	
+
 	// module vars
-	let cnv = document.getElementById("canvas");	
+	let cnv = document.getElementById("canvas");
 
 	// корд-ты клеток в бесконечной плоскости
 	let gridAliveCells = [];
 
-	// коорд-ты клетки 
+	// коорд-ты клетки
 	// на двумерной конечной плоскости
 	let renderCells = [];
 
@@ -20,10 +18,10 @@ import _ from './underscore';
 
 	let isPause = false;
 
-	// класс Клетка: 
+	// класс Клетка:
 	// знает свои координаты, состояние, координаты соседей
 	class Cell {
-		
+
 		constructor(x, y, alive = true) {
 			this.cellX = x;
 			this.cellY = y;
@@ -32,7 +30,7 @@ import _ from './underscore';
 			this.cellAlive = alive;
 
 			// пустые соседи клетки
-			this.emptyNeighbours = [];			
+			this.emptyNeighbours = [];
 
 			// по умолчанию все соседи -- пустые
 			if (alive)
@@ -40,7 +38,7 @@ import _ from './underscore';
 
 			// клетка "знает" кол-во живых клеток вокруг себя
 			this.aliveNeighboursCounter = 0;
-		}		
+		}
 
 		debugPrint(checkNeighbours = true) {
 			console.log("X: " + this.cellX);
@@ -60,13 +58,13 @@ import _ from './underscore';
 		// окрестность Мура
 		fillEmptyNeighbours() {
 
-			for(let currentCellY = this.cellY - cellSize; 
-				currentCellY <= this.cellY + cellSize; 
+			for(let currentCellY = this.cellY - cellSize;
+				currentCellY <= this.cellY + cellSize;
 				currentCellY += cellSize)
 
-				for(let currentCellX = this.cellX - cellSize; 
-					currentCellX <= this.cellX + cellSize; 
-						currentCellX += cellSize) 
+				for(let currentCellX = this.cellX - cellSize;
+					currentCellX <= this.cellX + cellSize;
+						currentCellX += cellSize)
 				{
 
 					if (currentCellX === this.cellX
@@ -77,19 +75,19 @@ import _ from './underscore';
 
 					// сохраняем инф-ю о пустых клетках
 					this.emptyNeighbours.push(cell);
-					
+
 				}
 
 		}
 
 		// уточнить инф-ю о соседях и их кол-ве(!для живой клетки)
-		updateNeighbours() {						
+		updateNeighbours() {
 
 			let neighbours = this.emptyNeighbours;
 			let neighboursLen = neighbours.length;
 
 			// !!! для рождения
-			// сначала обновляем соседей									
+			// сначала обновляем соседей
 			for(let j = 0; j < neighboursLen; ++j) {
 
 				// только если сосед мертв(устраняем дублирование)
@@ -97,12 +95,12 @@ import _ from './underscore';
 
 					console.log("Dead neighbours");
 
-					// заполним соседей						
+					// заполним соседей
 					neighbours[j].fillEmptyNeighbours();
 
-					neighbours[j].decideDestiny();					
+					neighbours[j].decideDestiny();
 				}
-			}		
+			}
 
 			this.decideDestiny();
 		}
@@ -113,21 +111,21 @@ import _ from './underscore';
 			this.emptyNeighbours = getArrayDistract(this.emptyNeighbours,
 													gridAliveCells);
 
-			this.aliveNeighboursCounter = 8 - this.emptyNeighbours.length;			
-			
+			this.aliveNeighboursCounter = 8 - this.emptyNeighbours.length;
+
 			console.log("aliveNeighboursCounter: " + this.aliveNeighboursCounter);
 
-			if (this.cellAlive) {				
-				// или блин негде жить => смерть от холода 
+			if (this.cellAlive) {
+				// или блин негде жить => смерть от холода
 				// или мне одиноко => покончу собой
-				if (this.aliveNeighboursCounter < 2 || this.aliveNeighboursCounter > 3) {					
+				if (this.aliveNeighboursCounter < 2 || this.aliveNeighboursCounter > 3) {
 					this.cellAlive = false;
 				}
 			}
 			else{
 				this.cellAlive = (this.aliveNeighboursCounter === 3);
 				console.log(this.cellAlive);
-			}	
+			}
 		}
 
 		get neighbours() {
@@ -159,22 +157,22 @@ import _ from './underscore';
 
 	// grid click listener
 	cnv.addEventListener("click", function (evt) {
-		
+
 		// определим кординаты клика
 		let mousePos = getMousePos(evt);
 
 		// определим к-ты клетки
-		let [xGridCellStart, yGridCellStart] = getCellCoord(mousePos.x, 
+		let [xGridCellStart, yGridCellStart] = getCellCoord(mousePos.x,
 															mousePos.y);
 
-		let cell = new Cell(xGridCellStart, yGridCellStart);		
+		let cell = new Cell(xGridCellStart, yGridCellStart);
 
 		// сохраним инф-ию о живой клетке
 		gridAliveCells.push(cell);
 		renderCells.push(cell);
-				
+
 		paintCell(xGridCellStart, yGridCellStart);
-		paintCell(xGridCellStart, yGridCellStart);		
+		paintCell(xGridCellStart, yGridCellStart);
 	});
 
 	stepBtn.addEventListener("click", makeStep);
@@ -196,25 +194,25 @@ import _ from './underscore';
 
 
 
-	// // ********* Module Functions ************* //	
+	// // ********* Module Functions ************* //
 
 	function refresh() {
 
-		createGrid();	
+		createGrid();
 
 		// рендерим все живые клетки
-		for(let i = 0; i < renderCells.length; ++i) {		
+		for(let i = 0; i < renderCells.length; ++i) {
 			paintCell(renderCells[i].x, renderCells[i].y);
 			paintCell(renderCells[i].x, renderCells[i].y);
 		}
-	
+
 	}
 
 	function createGrid() {
 
-		let context = cnv.getContext("2d");	
+		let context = cnv.getContext("2d");
 
-		// after prev call		
+		// after prev call
 		context.clearRect(0, 0, cnv.width, cnv.height);
 
 		context.fillStyle = "white"; // canvas color
@@ -223,7 +221,7 @@ import _ from './underscore';
 		context.strokeStyle = "black";	// cell stroke color
 
 		// grid rendering
-		let stepVal = 20;	
+		let stepVal = 20;
 		for (let posX = 0; posX <= cnv.width; posX += stepVal) {
 			context.beginPath();
 				context.moveTo(posX, 0);
@@ -242,23 +240,23 @@ import _ from './underscore';
 			context.closePath();
 		}
 	}
-	
+
 	function updateLivingCellNeighbours() {
 
 		// обновим инф-ю в клетках и их соседях
 		// о живых клетках
 		for(let i = 0; i < gridAliveCells.length; ++i) {
 
-			let aliveCell = gridAliveCells[i];				
+			let aliveCell = gridAliveCells[i];
 
 			// при обновлении клетка меняет своё состояние
-			aliveCell.updateNeighbours();	
+			aliveCell.updateNeighbours();
 		}
 	}
 
 	// Описание: Вышла ли клетка за границы вселенной
 	// Вход: Коорд-ты рожденной клетки
-	// Выход: Новые коорд-ты клетки	
+	// Выход: Новые коорд-ты клетки
 	function updateBeyondBoundsCoords(coordX, coordY){
 
 		// граница -- это ширина/высота минус размер клетки
@@ -268,10 +266,10 @@ import _ from './underscore';
 		let isBeyondBoundX = coordX > boundX || coordX < 0;
 		let isBeyondBoundY = coordY > boundY || coordY < 0;
 
-		let toroidCoordX = isBeyondBoundX ? 
+		let toroidCoordX = isBeyondBoundX ?
 						   Math.abs(Math.abs(coordX % cnv.width)) : coordX;
 
-		let toroidCoordY = isBeyondBoundY ? 
+		let toroidCoordY = isBeyondBoundY ?
 						   Math.abs(Math.abs(coordY % cnv.height)) : coordY;
 
 		return [].concat(toroidCoordX, toroidCoordY);
@@ -285,7 +283,7 @@ import _ from './underscore';
 			let aliveCellX = gridAliveCells[i].x;
 			let aliveCellY = gridAliveCells[i].y;
 
-			let [renderCoordX, renderCoordY] = updateBeyondBoundsCoords(aliveCellX, 
+			let [renderCoordX, renderCoordY] = updateBeyondBoundsCoords(aliveCellX,
 											 							aliveCellY);
 
 			let renderCell = new Cell(renderCoordX, renderCoordY);
@@ -294,13 +292,13 @@ import _ from './underscore';
 	}
 
 	function makeStep() {
-		
+
 		let nextGen = [];
 
-		updateLivingCellNeighbours();		
+		updateLivingCellNeighbours();
 
 		let len = gridAliveCells.length;
-		for(let i = 0; i < len; ++i) {			
+		for(let i = 0; i < len; ++i) {
 
 			let aliveCell = gridAliveCells[i];
 			let neighbours = aliveCell.emptyNeighbours;
@@ -311,16 +309,16 @@ import _ from './underscore';
 
 					let cell = new Cell(neighbours[j].x, neighbours[j].y);
 					nextGen.push(cell);
-				}					
+				}
 			}
 
 			if (aliveCell.isAlive) {
 				let cell = new Cell(aliveCell.x, aliveCell.y);
 				nextGen.push(cell);
 			}
-		}		
+		}
 
-		gridAliveCells = nextGen;		
+		gridAliveCells = nextGen;
 
 		updateRenderCells();
 
@@ -330,7 +328,7 @@ import _ from './underscore';
 	}
 
 	function pause() {
-	
+
 		isPause = !isPause;
 
 		if (!isPause)
@@ -342,17 +340,17 @@ import _ from './underscore';
 		if (isPause)
 			return;
 
-		let prevGen = gridAliveCells.slice();	
+		let prevGen = gridAliveCells.slice();
 
 		makeStep();
 
-		if ( _.isEqual(gridAliveCells, prevGen) 
+		if ( _.isEqual(gridAliveCells, prevGen)
 			|| gridAliveCells.length === 0){
 
 			console.log("break");
 			return;
-		}		
-	
+		}
+
 		setTimeout(run, 200);
 	}
 
@@ -368,11 +366,11 @@ import _ from './underscore';
 
 	// раскрасить живую клетку
 	function paintCell(xGridCellStart, yGridCellStart) {
-		
+
 		let context = cnv.getContext("2d");
 
 		context.strokeStyle = "rgba(135, 0, 0, 1)";
-		
+
 		let yGridCellEnd = yGridCellStart + 20;
 
 		while (yGridCellStart < yGridCellEnd) {
@@ -391,21 +389,20 @@ import _ from './underscore';
 	function getCellCoord(x, y) {
 
 		let factorX = parseInt(x / 20);
-		let factorY = parseInt(y / 20);	
+		let factorY = parseInt(y / 20);
 
 		return [factorX * 20, factorY * 20];
 	}
 
 	// содержит ли массив объект
 	function containsObject(arr, obj) {
-		return arr.some(el => el.x === obj.x && el.y === obj.y);	
+		return arr.some(el => el.x === obj.x && el.y === obj.y);
 	}
 
 	// вычитание массивов координат
-	function getArrayDistract(minuendArr, subtrahendArr) {		
+	function getArrayDistract(minuendArr, subtrahendArr) {
 		return minuendArr.filter( val => !containsObject(subtrahendArr, val) );
 	}
-	
+
 	// ******************** End of module functions ***********************
 }());
- 

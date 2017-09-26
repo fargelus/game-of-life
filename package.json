@@ -2,8 +2,9 @@
   "name": "lifegame",
   "version": "1.0.0",
   "description": "Conway's game of life impementation",
-  "main": "index.html",
+  "main": "server.js",
   "scripts": {
+    "start": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -17,7 +18,9 @@
   },
   "homepage": "https://github.com/fargelus/Game-of-Life#readme",
   "devDependencies": {
-    "webpack": "^3.6.0",
-    "webpack-dev-server": "^2.8.2"
+    "express": "^4.15.5",
+    "hiredis": "^0.5.0",
+    "nodemon": "^1.12.1",
+    "redis": "^2.8.0"
   }
 }
