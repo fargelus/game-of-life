@@ -20,12 +20,13 @@
 		<br><br>
 			<label for="config-select"> Конфигурация: </label>
 			<select id="config-select">
-				<optgroup label="Стандартные">
-					<option> Test 1 </option>
+				<optgroup id="standard-config-list" label="Стандартные">
+					<option value=""> None </option>
 				<optgroup label="Пользовательские">
-					<option> Test 2 </option>
 			</select>
 	</div>
+
+	<div id="config" style="display: none"> <%= config %> </div>
 
 	<script src="bundle.js"></script>
 </body>
