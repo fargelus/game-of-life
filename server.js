@@ -19,7 +19,7 @@ app.get('/', function (req, res) {
   res.sendFile(path.join(__dirname + '/index.html'));
 });
 
-app.use(express.static(path.join(__dirname + '/src/js/')));
+app.use(express.static('.'));
 
 app.listen(port, function () {
   console.log('Server starts at ' + port);
