@@ -21,9 +21,13 @@
   "devDependencies": {
     "browserify": "^14.4.0",
     "ejs": "^2.5.7",
-    "express": "^4.15.5",    
+    "eslint": "^4.7.2",
+    "eslint-config-airbnb-base": "^12.0.1",
+    "eslint-plugin-import": "^2.7.0",
+    "express": "^4.15.5",
     "jquery": "^3.2.1",
     "nodemon": "^1.12.1",
+    "qunit": "^1.0.0",
     "underscore": "^1.8.3"
   }
 }
