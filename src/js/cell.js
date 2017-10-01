@@ -6,12 +6,9 @@
        след.поколении). ###
 */
 
-"use strict"
-
 const Helpers = require('./helpers');
 
 module.exports = class Cell {
-
   constructor(x, y, cellSize = 20, alive = true) {
     // console.log("x: " + x + "\ny: " + y + "\nalive: " + alive);
     this.cellX = x;
@@ -25,70 +22,60 @@ module.exports = class Cell {
     this.emptyNeighbours = [];
 
     // по умолчанию все соседи -- пустые
-    if (alive)
+    if (alive) {
       this.fillEmptyNeighbours();
+    }
 
     // клетка "знает" кол-во живых клеток вокруг себя
     this.aliveNeighboursCounter = 0;
   }
 
   debugPrint(checkNeighbours = true) {
-    console.log("X: " + this.cellX);
-    console.log("Y: " + this.cellY);
-
-    let stateInfo = this.cellAlive ? "Alive" : "Dead";
-    console.log("State: " + stateInfo);
-
+    // add console.log for debug
+    // const stateInfo = this.cellAlive ? 'Alive' : 'Dead';
     if (checkNeighbours) {
-      let len = this.emptyNeighbours.length;
-      for(let i = 0; i < len; ++i)
+      const len = this.emptyNeighbours.length;
+      for (let i = 0; i < len; i += 1) {
         this.emptyNeighbours[i].debugPrint(false);
+      }
     }
-
   }
 
   // окрестность Мура
   fillEmptyNeighbours() {
-
-    for(let currentCellY = this.cellY - this.size;
+    for (let currentCellY = this.cellY - this.size;
       currentCellY <= this.cellY + this.size;
-      currentCellY += this.size)
-
-      for(let currentCellX = this.cellX - this.size;
+      currentCellY += this.size) {
+      for (let currentCellX = this.cellX - this.size;
         currentCellX <= this.cellX + this.size;
-          currentCellX += this.size)
-      {
-
-        if (currentCellX === this.cellX
-          && currentCellY === this.cellY) continue;
-
-        // по умолчанию все соседи -- пустые
-        let cell = new Cell(currentCellX, currentCellY,
-          this.size, false);
-
-        // сохраняем инф-ю о пустых клетках
-        this.emptyNeighbours.push(cell);
-
+        currentCellX += this.size) {
+        // Исключаем саму клетку no-continue
+        if ((currentCellX === this.cellX &&
+             currentCellY === this.cellY) === false
+        ) {
+          // по умолчанию все соседи -- пустые
+          const cell = new Cell(
+            currentCellX, currentCellY,
+            this.size, false,
+          );
+          // сохраняем инф-ю о пустых клетках
+          this.emptyNeighbours.push(cell);
+        }
       }
-
+    }
   }
 
   // уточнить инф-ю о соседях и их кол-ве(!для живой клетки)
   // на вход массив всех живых клеток
   updateNeighbours(gridAliveCells) {
-
-    let neighbours = this.emptyNeighbours;
-    let neighboursLen = neighbours.length;
+    const neighbours = this.emptyNeighbours;
+    const neighboursLen = neighbours.length;
 
     // !!! для рождения
     // сначала обновляем соседей
-    for(let j = 0; j < neighboursLen; ++j) {
-
+    for (let j = 0; j < neighboursLen; j += 1) {
       // только если сосед мертв(устраняем дублирование)
       if (neighbours[j].isAlive === false) {
-
-        console.log("Dead neighbours");
-
         // заполним соседей
         neighbours[j].fillEmptyNeighbours();
 
@@ -99,28 +86,26 @@ module.exports = class Cell {
     this.decideDestiny(gridAliveCells);
   }
 
-  decideDestiny(gridAliveCells){
-
+  decideDestiny(gridAliveCells) {
     // оставить только пустых соседей
-    let getArrayDistract = Helpers.getArrayDistract;
+    const { getArrayDistract } = Helpers;
 
-    this.emptyNeighbours = getArrayDistract(this.emptyNeighbours,
-                        gridAliveCells);
+    this.emptyNeighbours = getArrayDistract(
+      this.emptyNeighbours,
+      gridAliveCells,
+    );
 
     this.aliveNeighboursCounter = 8 - this.emptyNeighbours.length;
-
-    console.log("aliveNeighboursCounter: " + this.aliveNeighboursCounter);
 
     if (this.cellAlive) {
       // или блин негде жить => смерть от холода
       // или мне одиноко => покончу собой
-      if (this.aliveNeighboursCounter < 2 || this.aliveNeighboursCounter > 3) {
+      if (this.aliveNeighboursCounter < 2 ||
+        this.aliveNeighboursCounter > 3) {
         this.cellAlive = false;
       }
-    }
-    else{
+    } else {
       this.cellAlive = (this.aliveNeighboursCounter === 3);
-      console.log(this.cellAlive);
     }
   }
 
@@ -140,11 +125,11 @@ module.exports = class Cell {
     return this.cellAlive;
   }
 
-  get cellSize(){
+  get cellSize() {
     return this.size;
   }
 
-  set cellSize(sz){
+  set cellSize(sz) {
     this.size = sz;
   }
 };

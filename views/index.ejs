@@ -12,19 +12,41 @@
 
 	<div class="game-controls">
 
-		<button type="button" id="run-button"> Run </button>
-		<button type="button" id="step-button"> Step </button>
-		<button type="button" id="pause-button"> Pause </button>
-		<button type="button" id="clear-button"> Clear </button>
+		<div class="row">
+			<button type="button" id="run-button"> Run </button>
+			<button type="button" id="step-button"> Step </button>
+			<button type="button" id="pause-button"> Pause </button>
+			<button type="button" id="clear-button"> Clear </button>
+		</div>
 
-		<br><br>
-			<label for="config-select"> Конфигурация: </label>
-			<select id="config-select">
-				<optgroup id="standard-config-list" label="Стандартные">
-					<option value=""> None </option>
-				<optgroup label="Пользовательские">
-			</select>
-	</div>
+		<br>
+		<div class="row">
+			<label>
+					Скорость:
+					<input type="number" id="speed-input" min="1"
+								 max="5" value="2">
+			</label>
+		</div>
+
+		<br>
+		<div>
+			<label>
+				Размер клетки:
+					<input type="range" step="5" id="js-range"
+						min="5" max="40" value="20">
+					<output id="js-output">20</output>
+			</label>
+		</div>
+
+		<br>
+		<div class="row">
+				<label for="config-select"> Конфигурация: </label>
+				<select id="config-select">
+					<optgroup id="standard-config-list" label="Стандартные">
+						<option value=""> None </option>
+					<optgroup label="Пользовательские">
+				</select>
+		</div>
 
 	<div id="config" style="display: none"> <%= config %> </div>
 

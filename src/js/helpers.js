@@ -1,17 +1,16 @@
 // helpers.js -- вспомогательные функции
 
- module.exports = (function () {
-
-  let unit = {};
+module.exports = (function Helpers() {
+  const unit = {};
 
   // содержит ли массив объект
-  function containsObject (arr, obj) {
+  function containsObject(arr, obj) {
     return arr.some(el => el.x === obj.x && el.y === obj.y);
   }
 
   // вычитание массивов координат
   function getArrayDistract(minuendArr, subtrahendArr) {
-    return minuendArr.filter( val => !containsObject(subtrahendArr, val) );
+    return minuendArr.filter(val => !containsObject(subtrahendArr, val));
   }
 
   // содержит ли массив объект
@@ -21,5 +20,4 @@
   unit.getArrayDistract = getArrayDistract;
 
   return unit;
-
 }());
