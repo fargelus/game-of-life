@@ -14,6 +14,7 @@ module.exports = (function Universe() {
   const clearBtn = document.getElementById('clear-button');
   const runBtn = document.getElementById('run-button');
   const pauseBtn = document.getElementById('pause-button');
+  const randomBtn = document.getElementById('random-btn');
 
   // inputs
   const speedInput = document.getElementById('speed-input');
@@ -106,8 +107,9 @@ module.exports = (function Universe() {
     }
   }
 
-  function onClearClick(/* evt */) {
+  function clearGrid(/* evt */) {
     gridAliveCells = [];
+    renderCells = [];
     createGrid();
   }
 
@@ -284,10 +286,61 @@ module.exports = (function Universe() {
     setTimeout(run, time);
   }
 
+  function placeRandomCells() {
+    // Очищаем сетку
+    clearGrid();
+
+    // Кол-во рядов/колонок на сетке
+    // Берем нижнюю границу(26.6 рядов !== 27)
+    const rowsNumber = Math.floor(cnv.height / cellSize);
+    const colsNumber = Math.floor(cnv.width / cellSize);
+
+    // Общее число клеток
+    const canvasCellsVolume = rowsNumber * colsNumber;
+
+    // Кол-во клеток в случайной конфигурации
+    const randomCellsNumber = canvasCellsVolume * 0.5;
+
+    // Named Function Expression
+    const getRandom = function getRandom(upperBound) {
+      return parseInt(Math.random() * upperBound, 10);
+    };
+
+    const convertNumberToGridCoord = function convertFunc(number) {
+      return cellSize * parseInt(number / cellSize, 10);
+    };
+
+    const randomCellsArray = [];
+    for (let i = 0; i < randomCellsNumber; i += 1) {
+      // Получить случайные значения в пределах размеров
+      // сетки
+      const randomX = getRandom(cnv.width);
+      const randomY = getRandom(cnv.height);
+
+      // Преобразовать случайные значения в координаты
+      // на сетке
+      const coordX = convertNumberToGridCoord(randomX);
+      const coordY = convertNumberToGridCoord(randomY);
+
+      const randomCell = new Cell(coordX, coordY);
+
+      // Если массив пуст или не содержит
+      // клетки с такими координатами
+      if (randomCellsArray.length === 0 ||
+          !(containsObject(randomCellsArray, randomCell))) {
+        randomCellsArray.push(randomCell);
+      }
+    }
+
+    gridAliveCells = randomCellsArray;
+    renderCells = randomCellsArray;
+    refresh();
+  }
+
   // DOM Event Listeners
   function addListeners() {
     stepBtn.addEventListener('click', makeStep);
-    clearBtn.addEventListener('click', onClearClick);
+    clearBtn.addEventListener('click', clearGrid);
 
     runBtn.addEventListener('click', (/* evt */) => {
       isPause = false;
@@ -330,6 +383,8 @@ module.exports = (function Universe() {
       cellSize = +cellSizeInput.value;
       refresh();
     });
+
+    randomBtn.addEventListener('click', placeRandomCells);
   }
 
   // Main stream
