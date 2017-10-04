@@ -1,7 +1,6 @@
 // universe.js -- Вселенная состоящая из клеток
 
 const Cell = require('./cell');
-const _ = require('underscore');
 const Helpers = require('./helpers');
 
 
@@ -269,6 +268,27 @@ module.exports = (function Universe() {
     refresh();
   }
 
+  // Условия остановки: конфигурация является
+  // стабильной(конфигурация на предыдущем шаге === текущей)
+  // Прим.: Блок
+  function isConfigStable(prevGen) {
+    let retVal = false;
+    const prevGenLen = prevGen.length;
+    let counter = 0;
+    for (; counter < prevGenLen; counter += 1) {
+      // Если хотя бы одна клетка отлична => прерываем цикл
+      if (!containsObject(gridAliveCells, prevGen[counter])) {
+        break;
+      }
+    }
+
+    if (counter === prevGenLen) {
+      retVal = true;
+    }
+
+    return retVal;
+  }
+
   function run() {
     if (isPause) {
       return;
@@ -278,8 +298,8 @@ module.exports = (function Universe() {
 
     makeStep();
 
-    if (_.isEqual(gridAliveCells, prevGen)
-    || gridAliveCells.length === 0) {
+    // Условия останова
+    if (isConfigStable(prevGen) || gridAliveCells.length === 0) {
       return;
     }
 
