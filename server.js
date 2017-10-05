@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Serve static in root folder
-app.use(express.static('.'));
+app.use(express.static('./static'));
 
 // Port listening
 app.listen(port, () => {});

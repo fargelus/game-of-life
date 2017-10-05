@@ -3,12 +3,33 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Conway's Game Of Life</title>
+	<link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
 	<canvas id="canvas" width="800" height="600">
 
 	</canvas>
+
+  <summary>Статистика</summary>
+	<details open class="stats">
+
+		<div class="stats__item">
+			<label for="js-output-gen">Поколение:</label>
+			<output id="js-output-gen">0</output>
+		</div>
+
+		<div class="stats__item">
+			<label for="js-output-cells-count">Всего клеток:</label>
+			<output id="js-output-cells-count">0</output>
+		</div>
+
+		<div class="stats__item">
+			<label for="js-output-alive-cells-count">Живых клеток:</label>
+			<output id="js-output-alive-cells-count">0</output>
+		</div>
+
+	</details>
 
 	<div class="game-controls">
 

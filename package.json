@@ -4,7 +4,7 @@
   "description": "Conway's game of life impementation",
   "main": "server.js",
   "scripts": {
-    "build:client": "watchify src/js/main.js -o bundle.js -v",
+    "build:client": "watchify static/js/main.js -o static/bundle.js -v",
     "build:server": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

@@ -19,6 +19,15 @@ module.exports = (function Universe() {
   const speedInput = document.getElementById('speed-input');
   let time = 250;
 
+  // stats
+  const genOutput = document.getElementById('js-output-gen');
+
+  const cellsCounterOutput =
+            document.getElementById('js-output-cells-count');
+
+  const aliveCellsCounter =
+            document.getElementById('js-output-alive-cells-count');
+
   const cellSizeInput = document.getElementById('js-range');
 
   // Helpers
@@ -109,6 +118,10 @@ module.exports = (function Universe() {
   function clearGrid(/* evt */) {
     gridAliveCells = [];
     renderCells = [];
+    genOutput.value = 0;
+
+    // FIX ME
+    aliveCellsCounter.value = 0;
     createGrid();
   }
 
@@ -266,6 +279,12 @@ module.exports = (function Universe() {
     updateRenderCells();
 
     refresh();
+
+    // Обновляем статистику
+    // Подсчет поколений
+    let genCounter = +genOutput.value;
+    genCounter += 1;
+    genOutput.value = genCounter;
   }
 
   // Условия остановки: конфигурация является
@@ -310,16 +329,10 @@ module.exports = (function Universe() {
     // Очищаем сетку
     clearGrid();
 
-    // Кол-во рядов/колонок на сетке
-    // Берем нижнюю границу(26.6 рядов !== 27)
-    const rowsNumber = Math.floor(cnv.height / cellSize);
-    const colsNumber = Math.floor(cnv.width / cellSize);
-
-    // Общее число клеток
-    const canvasCellsVolume = rowsNumber * colsNumber;
-
     // Кол-во клеток в случайной конфигурации
-    const randomCellsNumber = canvasCellsVolume * 0.5;
+    // cellsCounter -- всего клеток
+    const cellsCounter = +cellsCounterOutput.value;
+    const randomCellsNumber = cellsCounter * 0.5;
 
     // Named Function Expression
     const getRandom = function getRandom(upperBound) {
@@ -355,6 +368,16 @@ module.exports = (function Universe() {
     gridAliveCells = randomCellsArray;
     renderCells = randomCellsArray;
     refresh();
+  }
+
+  function calculateCellsCount() {
+    // Кол-во рядов/колонок на сетке
+    // Берем нижнюю границу(26.6 рядов !== 27)
+    const rowsNumber = Math.floor(cnv.height / cellSize);
+    const colsNumber = Math.floor(cnv.width / cellSize);
+
+    // Общее число клеток
+    cellsCounterOutput.value = rowsNumber * colsNumber;
   }
 
   // DOM Event Listeners
@@ -401,6 +424,7 @@ module.exports = (function Universe() {
 
     cellSizeInput.addEventListener('input', (/* evt */) => {
       cellSize = +cellSizeInput.value;
+      calculateCellsCount();
       refresh();
     });
 
@@ -411,4 +435,7 @@ module.exports = (function Universe() {
   addListeners();
   // Сетка на холсте
   createGrid();
+
+  // Обновить инф-ю о кол-ве клеток
+  calculateCellsCount();
 }());

@@ -1,0 +1,10 @@
+.stats{
+  margin-top: 5px;
+  margin-bottom: 20px;
+}
+
+.stats__item{
+  display: inline-block;
+  margin-top: 5px;
+  margin-right: 20px;
+}
