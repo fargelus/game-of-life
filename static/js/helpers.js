@@ -1,5 +1,6 @@
 // helpers.js -- вспомогательные функции
 
+// IIFE не засоряет глобальное пространство имён
 module.exports = (function Helpers() {
   const unit = {};
 
