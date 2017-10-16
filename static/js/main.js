@@ -53,7 +53,19 @@ const placeTile = (x, y, tile) => {
 let iterY = 0;
 let iterX = 0;
 
-// const gridCellsArr = [];
+// Заполнить массив значениями по умолчанию
+const fillArrayWithValue = (value, len) => {
+  // Одалживаем метод => arr = [undefined, * len]
+  let arr = Array(...Array(len));
+  arr = arr.map(() => value);
+  return arr;
+};
+
+const cellCols = fillArrayWithValue(0, tileNumberEdge);
+
+let gridCellsArr = fillArrayWithValue(0, tileNumberDiagonal);
+// копируем по значению
+gridCellsArr = gridCellsArr.map(() => cellCols.slice());
 
 // grid
 for (let i = 0; i < tileNumberDiagonal; i += 1) {
@@ -61,11 +73,15 @@ for (let i = 0; i < tileNumberDiagonal; i += 1) {
     placeTile(iterX, iterY, brick);
     // gridCellsArr.push({ x: iterX, y: iterY });
     iterX += brickSize;
+
+    const coord = { x: iterX, y: iterY };
+    gridCellsArr[i][j] = coord;
   }
 
   iterX = 0;
   iterY += brickSize;
 }
+
 
 // cube
 const cubeDimension = new obelisk.CubeDimension(
@@ -80,34 +96,65 @@ const cubeColor = cubeColorInstance.getByHorizontalColor(0xFF0000);
 const cube = new obelisk.Cube(cubeDimension, cubeColor);
 placeTile(0, 0, cube);
 
-cnv.addEventListener('click', (evt) => {
-  // const rect = cnv.getBoundingClientRect();
+/* Экранные координаты -> координаты сетки
+   Input(x, y): экранные координаты
+   Output(Object): матричные коорд-ты сетки
+*/
+function transformScreenToView(x, y) {
+  /* смещение отн-но начала координат
+     изометрической плоскости */
+  const offsetX = x - isometricOriginX;
+  const offsetY = y - isometricOriginY;
 
-  let x = evt.clientX;
-  let y = evt.clientY;
-  const viewPoint = new obelisk.Point3D();
-
-  x -= isometricOriginX;
-  y -= isometricOriginY;
-
-  let divident = (x + (2 * y)) / 2;
+  // It's kind a magic
+  let divident = (offsetX + (2 * offsetY)) / 2;
   const isoX = Math.floor(divident / brickSize);
 
-  divident = ((y * 2) - x) / 2;
+  divident = ((offsetY * 2) - offsetX) / 2;
   const isoY = Math.floor(divident / brickSize);
-  // const factorX = parseInt(evtX / brickSize, 10);
-  // const factorY = parseInt(evtY / brickSize, 10);
-  //
-  // const cartX = factorX * brickSize;
-  // const cartY = factorY * brickSize;
-  //
-  // const isoX = cartX + (brickSize / 2);
-  // const isoY
-  //
-  //
-  console.log(`x = ${isoX}`);
-  console.log(`y = ${isoY}`);
+
+  return { x: isoX, y: isoY };
+}
+
+cnv.addEventListener('click', (evt) => {
+  // преобразуем экранные координаты в к-ты сетки
+  const matrixCoords = transformScreenToView(
+    evt.clientX,
+    evt.clientY,
+  );
+
+  // aliases
+  const row = matrixCoords.y;
+  const col = matrixCoords.x - 1;
+
+  // клик над сеткой
+  const isUpper = row < 0 || col < 0;
+  // клик под сеткой
+  const isUnder = row > tileNumberDiagonal || col > tileNumberEdge;
+
+  if (isUpper || isUnder) {
+    return;
+  }
+
+  console.log(`row = ${row}`);
+  console.log(`col = ${col}`);
+  console.log(gridCellsArr[0][0].x);
+
+  // aliases
+  const gridX = gridCellsArr[row][col].x;
+  const gridY = gridCellsArr[row][col].y;
+
+  console.log(`gridX = ${gridX}`);
+  console.log(`gridY = ${gridY}`);
+
+  // разместим куб по клику
+  placeTile(gridX, gridY, cube);
 });
+
+// cnv.addEventListener('mousemove', (evt) => {
+//   console.log('mousemove');
+// });
+
 
 // window.addEventListener('load', () => {
 //   const configJSON = document.getElementById('config').innerText;
@@ -126,6 +173,7 @@ cnv.addEventListener('click', (evt) => {
 //   }
 // });
 //
+
 // const jsRange = document.getElementById('js-range');
 // jsRange.addEventListener('input', () => {
 //   const jsOutput = document.getElementById('js-output');
