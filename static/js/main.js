@@ -3,7 +3,7 @@ require('./universe');
 // main module
 class Main {
   constructor() {
-    Main.loadConfig();
+    // Main.loadConfig();
 
     // input type=range
     const jsRange = document.getElementById('js-range');

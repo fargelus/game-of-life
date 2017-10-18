@@ -25,53 +25,33 @@ module.exports = (function Universe() {
   // контейнер( сцена )
   const pixelView = new obelisk.PixelView(cnv, point);
 
-  // размер кирпича(делаем ромб)
-  // x -- ширина, y -- высота(в плоскости xy),
-  // z -- высота в пр-ве(xyz)
-  const brickSize = 40;
-  const brickDimension = new obelisk.BrickDimension(
-    brickSize,
-    brickSize,
-  );
+  let brickSize = 40;
 
-  // Кол-во тайлов на гранях ромба
-  const tileNumberEdge = parseInt(cnvCenterX / brickSize, 10);
+  // Кол-во тайлов на грани ромба
+  let tileNumberEdge;
+
   // Кол-во тайлов на диагонали ромба
-  const tileNumberDiagonal = parseInt(cnvCenterY / brickSize, 10);
+  let tileNumberDiagonal;
+
+  // кирпич -- клетка в изометрии
+  let brick;
 
   // цвет
   // color alias
   const gray = obelisk.ColorPattern.GRAY;
   const brickColor = new obelisk.SideColor().getByInnerColor(gray);
 
-  // кирпич -- клетка в изометрии
-  const brick = new obelisk.Brick(brickDimension, brickColor);
-
   // cube
-  const cubeDimension = new obelisk.CubeDimension(
-    brickSize, brickSize,
-    brickSize / 2,
-  );
+  let cube;
 
-  // cube color
-  const cubeColorInstance = new obelisk.CubeColor();
-  const cubeColor = cubeColorInstance.getByHorizontalColor(0xFF0000);
-
-  const cube = new obelisk.Cube(cubeDimension, cubeColor);
-
-  // коорд-ты всех клеток на сетке
   // ************** Helpers *****************
   const { containsObject } = Helpers;
   const { fillArrayWithValue } = Helpers;
   // ************** End of helpers **********
 
-  const cellCols = fillArrayWithValue(0, tileNumberEdge);
-  let gridCells = fillArrayWithValue(0, tileNumberDiagonal);
-
-  // значение по умол-ю
-  const initGridCells = gridCells.map(() => cellCols.slice());
-  // копируем по значению
-  gridCells = initGridCells.slice();
+  // коорд-ты всех клеток на сетке
+  let cellCols = [];
+  let gridCells = [];
 
   // ************** End of obelisk init **************
 
@@ -90,16 +70,15 @@ module.exports = (function Universe() {
   // const genOutput = document.getElementById('js-output-gen');
   const cellsCounterOutput =
             document.getElementById('js-output-cells-count');
-  cellsCounterOutput.value = tileNumberEdge * tileNumberDiagonal;
   // const aliveCellsCounter =
   //           document.getElementById('js-output-alive-cells-count');
   //
-  // const cellSizeInput = document.getElementById('js-range');
+  const brickSizeRange = document.getElementById('js-range');
 
 
-  // ******* Клетки *********
+  // ******* Фишки *********
   // корд-ты клеток в бесконечной вселенной
-  // let aliveCells = [];
+  let chips = [];
 
   // коорд-ты клетки
   // на двумерной конечной плоскости
@@ -110,15 +89,64 @@ module.exports = (function Universe() {
   // let isPause = false;
 
   // ********** module functions *************
-  function placeTile(x, y, tile) {
-    // TODO?
-    const realZ = 0;
-    const p3d = new obelisk.Point3D(x, y, realZ);
+
+  /* Desc: Расположить тайл на сетке
+     Input(x -> Number, y -> Number, tile -> obelisk):
+        x -- изометрическая к-та по оси абсцисс,
+        y -- изометрическая к-та по оси ординат,
+        tile -- инстанс отображаемого тайла
+     Output(undefined) */
+  function placeTile(x, y, z, tile) {
+    const p3d = new obelisk.Point3D(x, y, z);
     pixelView.renderObject(tile, p3d);
   }
 
+  /* Desc: Инициализация значимых переменных: obelisk, stats...
+     Input(undefined)
+     Output(undefined) */
+  function initVariables() {
+    // размер кирпича(делаем ромб)
+    // x -- ширина, y -- высота(в плоскости xy),
+    // z -- высота в пр-ве(xyz)
+    const brickDimension = new obelisk.BrickDimension(
+      brickSize,
+      brickSize,
+    );
+
+    // Кол-во тайлов на гранях ромба
+    tileNumberEdge = parseInt(cnvCenterX / brickSize, 10);
+    // Кол-во тайлов на диагонали ромба
+    tileNumberDiagonal = parseInt(cnvCenterY / brickSize, 10);
+    // Всего клеток (output)
+    cellsCounterOutput.value = tileNumberEdge * tileNumberDiagonal;
+
+    // кирпич -- клетка в изометрии
+    brick = new obelisk.Brick(brickDimension, brickColor);
+
+    // cube
+    const cubeDimension = new obelisk.CubeDimension(
+      brickSize, brickSize,
+      brickSize / 2,
+    );
+
+    // cube color
+    const cubeColorInstance = new obelisk.CubeColor();
+    const cubeColor = cubeColorInstance.getByHorizontalColor(0xFF0000);
+
+    cube = new obelisk.Cube(cubeDimension, cubeColor);
+
+    // К-ты всех ячеек на доске (row, col)
+    cellCols = fillArrayWithValue(0, tileNumberEdge);
+    gridCells = fillArrayWithValue(0, tileNumberDiagonal);
+    gridCells = gridCells.map(() => cellCols.slice());
+  }
+
+  /* Desc: Создание изометрической доски для размещения фишек
+     Input(undefined)
+     Output(undefined) */
   function createGrid() {
     pixelView.clear();
+    initVariables();
 
     let iterY = 0;
     let iterX = 0;
@@ -129,7 +157,7 @@ module.exports = (function Universe() {
         const coord = { x: iterX, y: iterY };
         gridCells[i][j] = coord;
 
-        placeTile(iterX, iterY, brick);
+        placeTile(iterX, iterY, 0, brick);
         iterX += brickSize;
       }
 
@@ -140,8 +168,7 @@ module.exports = (function Universe() {
 
   /* Desc: Экранные координаты -> координаты сетки
      Input(x, y): экранные координаты
-     Output(Object): матричные коорд-ты сетки
-  */
+     Output(Object): матричные коорд-ты сетки */
   function transformScreenToView(x, y) {
     /* смещение отн-но начала координат
        изометрической плоскости */
@@ -158,15 +185,39 @@ module.exports = (function Universe() {
     return { x: isoX, y: isoY };
   }
 
-  // Desc: Положить фишку по клику
-  // Input(x, y): экранные координаты
-  // Output(undefined)
-  function putChip(x, y) {
+  /* Desc: Перерисовка фишек по порядку
+           их расположения на доске(решение
+           проблемы проекции)
+     Input(undefined)
+     Output(undefined) */
+  function renderChipsByOrder() {
+    // Очищаем доску
+    createGrid();
+
+    let isoCoordX = 0;
+    let isoCoordY = 0;
+    for (let i = 0; i < tileNumberDiagonal; i += 1) {
+      isoCoordY = i * brickSize;
+
+      for (let j = 0; j < tileNumberEdge; j += 1) {
+        isoCoordX = j * brickSize;
+
+        const isometricCoords = { x: isoCoordX, y: isoCoordY };
+
+        // гарантируем порядок расположения фишек
+        if (containsObject(chips, isometricCoords)) {
+          placeTile(isoCoordX, isoCoordY, 0, cube);
+        }
+      }
+    }
+  }
+
+  /* Desc: Добавить фишку на доску по клику
+     Input(x, y): экранные координаты
+     Output(undefined) */
+  function addChip(x, y) {
     // преобразуем экранные координаты в к-ты сетки
     const matrixCoords = transformScreenToView(x, y);
-
-    // Сохраняем к-ты живой клетки
-    // aliveCells.push(matrixCoords);
 
     // aliases
     const row = matrixCoords.y;
@@ -189,221 +240,22 @@ module.exports = (function Universe() {
     const gridX = gridCells[row][col].x;
     const gridY = gridCells[row][col].y;
 
-    // console.log(`gridX = ${gridX}`);
-    // console.log(`gridY = ${gridY}`);
-
-    // разместим куб по клику
-    placeTile(gridX, gridY, cube);
+    // если тек.к-ты нет в массиве фишек =>
+    // добавить фишку и перерисовать все фишки сохраняя порядок
+    const isometricCoords = { x: gridX, y: gridY };
+    if (containsObject(chips, isometricCoords) === false) {
+      chips.push(isometricCoords);
+      renderChipsByOrder();
+    }
   }
 
-  // function refresh() {
-  //   createGrid();
-  //
-  //   // рендерим все живые клетки
-  //   const renderCellsLen = renderCells.length;
-  //   for (let i = 0; i < renderCellsLen; i += 1) {
-  //     paintCell(renderCells[i].x, renderCells[i].y);
-  //     paintCell(renderCells[i].x, renderCells[i].y);
-  //   }
-  // }
-  //
-  function clearGrid(/* evt */) {
-    // сброс всех клеток => перерисовка view
-    gridCells = initGridCells.slice();
-    // renderCells = [];
-    // genOutput.value = 0;
-
-    // FIX ME
-    // aliveCellsCounter.value = 0;
-    createGrid();
-  }
-
-  // Преобразование скорости(выбор пол-ля)
-  // во время задержки вызова фун-и makeStep
-  // function convertSpeedInTime(speed) {
-  //   const initialDelay = 500;
-  //   const ratio = 2;
-  //
-  //   let resDelay = initialDelay;
-  //   let counter = 1;
-  //
-  //   while (counter !== speed) {
-  //     resDelay /= ratio;
-  //     counter += 1;
-  //   }
-  //
-  //   time = resDelay;
-  // }
-
-  // Вышла ли коорд-та за пределы?
-  // 1 -- смещение положительное
-  // -1 -- смещение отрицательное
-  // 0 -- смещения нет
-  // function isCoordOverBound(coord, bound) {
-  //   if (coord < 0) {
-  //     return -1;
-  //   } else if (coord > bound) {
-  //     return 1;
-  //   }
-  //   return 0;
-  // }
-
-  // расчет координаты смещения при выходе
-  // за пределы вселенной
-  // function calculateOffsetCoord(coord, bound) {
-  //   // положительное смещение
-  //   if (coord >= bound) {
-  //     return coord % bound;
-  //   }
-  //
-  //   // отрицательное смещение
-  //   return bound - Math.abs(coord % bound);
-  // }
-
-  // Описание: Вышла ли клетка за границы вселенной
-  // Вход: Коорд-ты рожденной клетки
-  // Выход: Новые коорд-ты клетки
-  // function updateBeyondBoundsCoords(coordX, coordY) {
-  //   // Кэшируем на всякий случай
-  //   const gridWidth = cnv.width;
-  //   const gridHeight = cnv.height;
-  //
-  //   // граница -- это ширина/высота минус размер клетки
-  //   const boundX = gridWidth - cellSize;
-  //   const boundY = gridHeight - cellSize;
-  //
-  //   // Вышла ли координата за границы вселенной
-  //   const resX = isCoordOverBound(coordX, boundX);
-  //   const resY = isCoordOverBound(coordY, boundY);
-  //
-  //   let toroidCoordX = coordX;
-  //   // Если смещение по Х -> перерасчет координаты Х
-  //   if (resX !== 0) {
-  //     toroidCoordX = calculateOffsetCoord(coordX, gridWidth);
-  //   }
-  //
-  //   let toroidCoordY = coordY;
-  //   // Если смещение по Y -> перерасчет координат Y
-  //   if (resY !== 0) {
-  //     toroidCoordY = calculateOffsetCoord(coordY, gridHeight);
-  //   }
-  //
-  //   return [].concat(toroidCoordX, toroidCoordY);
-  // }
-
-  // Обновляем отображаемые клетки
-  // function updateRenderCells() {
-  //   renderCells = [];
-  //   const aliveCellNumber = gridAliveCells.length;
-  //   for (let i = 0; i < aliveCellNumber; i += 1) {
-  //     const aliveCellX = gridAliveCells[i].x;
-  //     const aliveCellY = gridAliveCells[i].y;
-  //
-  //     const [renderCoordX, renderCoordY] =
-  //                         updateBeyondBoundsCoords(
-  //                           aliveCellX,
-  //                           aliveCellY,
-  //                         );
-  //
-  //     const renderCell = new Cell(renderCoordX, renderCoordY);
-  //     renderCells.push(renderCell);
-  //   }
-  // }
-
-  // На очередном шаге клетка узнает о живых соседях
-  // function updateLivingCellNeighbours() {
-  //   // обновим инф-ю в клетках и их соседях
-  //   // о живых клетках
-  //   const aliveCellsNumber = gridAliveCells.length;
-  //   for (let i = 0; i < aliveCellsNumber; i += 1) {
-  //     const aliveCell = gridAliveCells[i];
-  //
-  //     // при обновлении клетка меняет своё состояние
-  //     aliveCell.updateNeighbours(gridAliveCells);
-  //   }
-  // }
-
-  // function makeStep() {
-  //   const nextGen = [];
-  //
-  //   // Клетка узнает о своих соседях => изменяет
-  //   // своё состояние
-  //   updateLivingCellNeighbours();
-  //
-  //   const len = gridAliveCells.length;
-  //   for (let i = 0; i < len; i += 1) {
-  //     const aliveCell = gridAliveCells[i];
-  //     const neighbours = aliveCell.emptyNeighbours;
-  //     const neighboursLen = neighbours.length;
-  //
-  //     for (let j = 0; j < neighboursLen; j += 1) {
-  //       if (neighbours[j].isAlive &&
-  //         !containsObject(nextGen, neighbours[j])) {
-  //         const cell = new Cell(neighbours[j].x, neighbours[j].y);
-  //         nextGen.push(cell);
-  //       }
-  //     }
-  //
-  //     if (aliveCell.isAlive) {
-  //       const cell = new Cell(aliveCell.x, aliveCell.y);
-  //       nextGen.push(cell);
-  //     }
-  //   }
-  //
-  //   gridAliveCells = nextGen;
-  //
-  //   updateRenderCells();
-  //
-  //   refresh();
-  //
-  //   // Обновляем статистику
-  //   // Подсчет поколений
-  //   let genCounter = +genOutput.value;
-  //   genCounter += 1;
-  //   genOutput.value = genCounter;
-  // }
-
-  // Условия остановки: конфигурация является
-  // стабильной(конфигурация на предыдущем шаге === текущей)
-  // Прим.: Блок
-  // function isConfigStable(prevGen) {
-  //   let retVal = false;
-  //   const prevGenLen = prevGen.length;
-  //   let counter = 0;
-  //   for (; counter < prevGenLen; counter += 1) {
-  //     // Если хотя бы одна клетка отлична => прерываем цикл
-  //     if (!containsObject(gridAliveCells, prevGen[counter])) {
-  //       break;
-  //     }
-  //   }
-  //
-  //   if (counter === prevGenLen) {
-  //     retVal = true;
-  //   }
-  //
-  //   return retVal;
-  // }
-
-  // function run() {
-  //   if (isPause) {
-  //     return;
-  //   }
-  //
-  //   const prevGen = gridAliveCells.slice();
-  //
-  //   makeStep();
-  //
-  //   // Условия останова
-  //   if (isConfigStable(prevGen) || gridAliveCells.length === 0) {
-  //     return;
-  //   }
-  //
-  //   setTimeout(run, time);
-  // }
-
+  /* Desc: Случайная кон-я фишек
+     Input(undefined)
+     Output(undefined) */
   function placeRandomCells() {
     // Очищаем сетку
-    clearGrid();
+    createGrid();
+
     // Кол-во клеток в случайной конфигурации
     // cellsCounter -- всего клеток
     const cellsCounter = +cellsCounterOutput.value;
@@ -436,7 +288,7 @@ module.exports = (function Universe() {
         // преобразуем в изометрические к-ты
         const isoX = gridCells[row][col].x;
         const isoY = gridCells[row][col].y;
-        placeTile(isoX, isoY, cube);
+        placeTile(isoX, isoY, 0, cube);
       }
     }
 
@@ -445,20 +297,13 @@ module.exports = (function Universe() {
   //   refresh();
   }
 
-  // function calculateCellsCount() {
-  //   // Кол-во рядов/колонок на сетке
-  //   // Берем нижнюю границу(26.6 рядов !== 27)
-  //   const rowsNumber = Math.floor(cnv.height / cellSize);
-  //   const colsNumber = Math.floor(cnv.width / cellSize);
-  //
-  //   // Общее число клеток
-  //   cellsCounterOutput.value = rowsNumber * colsNumber;
-  // }
-
-  // DOM Event Listeners
+  /* Desc: Зарегистрировать обработчики событий элементов
+           управления
+     Input(undefined)
+     Output(undefined) */
   function addListeners() {
   //   stepBtn.addEventListener('click', makeStep);
-    clearBtn.addEventListener('click', clearGrid);
+    clearBtn.addEventListener('click', createGrid);
   //
   //   runBtn.addEventListener('click', (/* evt */) => {
   //     isPause = false;
@@ -474,17 +319,18 @@ module.exports = (function Universe() {
   //
     // Положить фишку по клику
     cnv.addEventListener('click', (evt) => {
-      putChip(evt.clientX, evt.clientY);
+      addChip(evt.clientX, evt.clientY);
     });
   //   speedInput.addEventListener('input', () => {
   //     convertSpeedInTime(+speedInput.value);
   //   });
   //
-  //   cellSizeInput.addEventListener('input', (/* evt */) => {
-  //     cellSize = +cellSizeInput.value;
-  //     calculateCellsCount();
-  //     refresh();
-  //   });
+    brickSizeRange.addEventListener('input', (/* evt */) => {
+      brickSize = +brickSizeRange.value;
+
+      // TODO
+      createGrid();
+    });
 
     randomBtn.addEventListener('click', placeRandomCells);
   }
@@ -493,7 +339,4 @@ module.exports = (function Universe() {
   addListeners();
   // Сетка на холсте
   createGrid();
-
-  // Обновить инф-ю о кол-ве клеток
-  // calculateCellsCount();
 }());

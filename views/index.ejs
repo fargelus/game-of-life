@@ -34,10 +34,10 @@
 	<div class="game-controls">
 
 		<div class="row">
-			<button type="button" id="run-button"> Run </button>
-			<button type="button" id="step-button"> Step </button>
-			<button type="button" id="pause-button"> Pause </button>
-			<button type="button" id="clear-button"> Clear </button>
+			<button type="button" id="run-button"> Запустить </button>
+			<button type="button" id="step-button"> Шаг </button>
+			<button type="button" id="pause-button"> Стоп </button>
+			<button type="button" id="clear-button"> Очистить </button>
 		</div>
 
 		<br>
@@ -53,9 +53,9 @@
 		<div>
 			<label>
 				Размер клетки:
-					<input type="range" step="5" id="js-range"
-						min="5" max="40" value="20">
-					<output id="js-output">20</output>
+					<input type="range" step="10" id="js-range"
+						min="10" max="40" value="40">
+					<output id="js-output">40</output>
 			</label>
 		</div>
 
@@ -63,12 +63,37 @@
 		<div class="row">
 				<label for="config-select"> Конфигурация: </label>
 				<select id="config-select">
-					<optgroup id="standard-config-list" label="Стандартные">
-						<option value=""> None </option>
-					<optgroup label="Пользовательские">
+						<optgroup label="Устойчивые">
+							<option value="">Блок</option>
+							<option value="">Ящик</option>
+							<option value="">Улей</option>
+							<option value="">Корабль</option>
+							<option value="">Пруд</option>
+						</optgroup>
+
+		        <optgroup label="Флип-флопы">
+		        	<option value="">Мигалка</option>
+		        	<option value="">Навигационные огни</option>
+		        </optgroup>
+
+						<optgroup label="Долгожители">
+							<option value="">r-пентамино</option>
+							<option value="">Ворота</option>
+						</optgroup>
+
+						<optgroup label="Интересные">
+							<option value="">Чеширский кот</option>
+							<option value="">Агар</option>
+							<option value="">Тумблер</option>
+							<option value="">Жнейка</option>
+							<option value="">Планер</option>
+							<option value="">Планерное ружьё</option>
+							<option value="">Восьмёрка</option>
+						</optgroup>
+					<optgroup label="Пользовательские"></optgroup>
 				</select>
 				<button type="button" name="button" id="random-btn">
-					Random
+					Рандом
 				</button>
 		</div>
 
