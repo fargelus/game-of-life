@@ -3,7 +3,8 @@
 // const Cell = require('./cell');
 const Helpers = require('./helpers');
 const obelisk = require('obelisk.js');
-
+const _ = require('underscore');
+require('underscore-observe')(_);
 
 module.exports = (function Universe() {
   // HTML5 canvas
@@ -70,15 +71,22 @@ module.exports = (function Universe() {
   // const genOutput = document.getElementById('js-output-gen');
   const cellsCounterOutput =
             document.getElementById('js-output-cells-count');
-  // const aliveCellsCounter =
-  //           document.getElementById('js-output-alive-cells-count');
-  //
+  const aliveCellsCounter =
+            document.getElementById('js-output-alive-cells-count');
+
   const brickSizeRange = document.getElementById('js-range');
 
 
   // ******* Фишки *********
-  // корд-ты клеток в бесконечной вселенной
+  // изометрические к-ты фишек
   let chips = [];
+  const updateAliveCellsCounter = () => {
+    aliveCellsCounter.value = chips.length;
+  };
+
+  // callback вызывается при изменении элементов в массиве
+  _.observe(chips, 'create', updateAliveCellsCounter);
+  _.observe(chips, 'delete', updateAliveCellsCounter);
 
   // коорд-ты клетки
   // на двумерной конечной плоскости
@@ -303,7 +311,15 @@ module.exports = (function Universe() {
      Output(undefined) */
   function addListeners() {
   //   stepBtn.addEventListener('click', makeStep);
-    clearBtn.addEventListener('click', createGrid);
+    clearBtn.addEventListener('click', () => {
+      // Для наблюдателя
+      const arrLen = chips.length;
+      for (let i = 0; i < arrLen; i += 1) {
+        chips.shift();
+      }
+
+      createGrid();
+    });
   //
   //   runBtn.addEventListener('click', (/* evt */) => {
   //     isPause = false;
