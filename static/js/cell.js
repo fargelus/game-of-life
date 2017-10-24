@@ -9,7 +9,7 @@
 const Helpers = require('./helpers');
 
 module.exports = class Cell {
-  constructor(x, y, cellSize = 20, alive = true) {
+  constructor(x, y, cellSize, alive = true) {
     // console.log("x: " + x + "\ny: " + y + "\nalive: " + alive);
     this.cellX = x;
     this.cellY = y;

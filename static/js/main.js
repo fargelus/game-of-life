@@ -1,38 +1,158 @@
-require('./universe');
+// const Universe = require('./universe');
+const View = require('./view');
+const Life = require('./life');
+const Helpers = require('./helpers');
 
-// main module
-class Main {
-  constructor() {
-    // Main.loadConfig();
+module.exports = (() => {
+  const canvas = document.getElementsByTagName('canvas')[0];
 
-    // input type=range
-    const jsRange = document.getElementById('js-range');
-    jsRange.addEventListener('input', () => {
-      const jsOutput = document.getElementById('js-output');
-      jsOutput.innerHTML = jsRange.value;
-    });
+  // ******************* Inputs ********************
+  const jsRange = document.getElementById('js-range');
+  const speedInput = document.getElementById('speed-input');
+  // ******************* End Of Inputs *************
+
+  // ***************** Stats *********************
+  const allCells = document.getElementById('js-output-cells-count');
+  const aliveCellsCounter =
+              document.getElementById('js-output-alive-cells-count');
+  const genOutput = document.getElementById('js-output-gen');
+  // ***************** End Of Stats **************
+
+  // **************** Buttons ********************
+  const randomBtn = document.getElementById('random-btn');
+  const clearBtn = document.getElementById('clear-button');
+  const pauseBtn = document.getElementById('pause-button');
+  const stepBtn = document.getElementById('step-button');
+  const runBtn = document.getElementById('run-button');
+  // **************** End Of Buttons ********************
+
+  const view = new View(canvas);
+  const life = new Life([], +jsRange.value);
+
+  function updateAliveCellsInStats() {
+    const alive = life.aliveCells;
+    // Обновим инф-ю о живых клетках в статистике
+    aliveCellsCounter.value = alive.length;
   }
 
-  static loadConfig() {
-    // load Config
-    // JSON с сервера
-    const configJSON = document.getElementById('config').innerText;
-    const configObj = JSON.parse(configJSON);
+  function onCanvasClick(evt) {
+    const screenX = evt.pageX;
+    const screenY = evt.pageY;
 
-    // select - option (HTML)
-    const standardConfigList =
-    document.getElementById('standard-config-list');
+    try {
+      const { x, y } = view.transformScreenToView(screenX, screenY);
+      life.addCell(x, y);
+    } catch (err) {
+      console.log(err.message);
+    }
 
-    const configObjKeys = Object.keys(configObj);
-    const configObjKeysLen = configObjKeys.length;
+    view.renderChips(life.aliveCells);
+    updateAliveCellsInStats();
+  }
 
-    // Заполняем select конфигами
-    for (let i = 0; i < configObjKeysLen; i += 1) {
-      const option = document.createElement('option');
-      option.innerHTML = configObjKeys[i];
-      standardConfigList.appendChild(option);
+  function onRandomBtnClick() {
+    life.makeRandomConfig(view.dimensionX, view.dimensionY);
+    view.renderChips(life.aliveCells);
+
+    updateAliveCellsInStats();
+  }
+
+  function clearState() {
+    const cellSize = +jsRange.value;
+
+    life.clear();
+    life.cellSize = cellSize;
+
+    view.setBoardScale(cellSize);
+    view.createBoard();
+
+    updateAliveCellsInStats();
+    genOutput.value = 0;
+    allCells.value = view.dimensionX * view.dimensionY;
+  }
+
+  function step() {
+    const prevAlive = life.aliveCells;
+    const prevAliveLen = prevAlive.length;
+
+    // Условия останова
+    if (prevAliveLen > 0) {
+      life.nextGeneration();
+
+      const currentAlive = life.aliveCells;
+      const arrayDistraction = Helpers.getArrayDistract;
+      const difference = arrayDistraction(prevAlive, currentAlive);
+
+      // // Если есть разница => отобразить изменения
+      if (difference.length) {
+        view.renderChips(currentAlive);
+        genOutput.value = +genOutput.value + 1;
+      }
     }
   }
-}
 
-window.addEventListener('load', new Main());
+  function convertSpeedInTime(speed) {
+    const initialDelay = 500;
+    const ratio = 2;
+
+    let resDelay = initialDelay;
+    let counter = 1;
+
+    while (counter !== speed) {
+      resDelay /= ratio;
+      counter += 1;
+    }
+
+    return resDelay;
+  }
+
+  function run() {
+    if (run.intervalId !== undefined) clearInterval(run.intervalId);
+
+    let timeDelay = convertSpeedInTime(+speedInput.value);
+
+    // Возможность менять интервал вызова функции во
+    // время выполнения
+    run.intervalId = setInterval(function requestDelay() {
+      const currentDelay = convertSpeedInTime(+speedInput.value);
+      clearInterval(run.intervalId);
+
+      if (currentDelay !== timeDelay) {
+        timeDelay = currentDelay;
+      }
+
+      step();
+      run.intervalId = setInterval(requestDelay, timeDelay);
+    }, timeDelay);
+  }
+
+  function pause() {
+    clearInterval(run.intervalId);
+  }
+
+
+  function bindEvents() {
+    jsRange.addEventListener('input', () => {
+      // input type=range
+      const jsOutput = document.getElementById('js-output');
+      jsOutput.innerHTML = jsRange.value;
+
+      clearState();
+    });
+
+    canvas.addEventListener('click', onCanvasClick);
+
+    randomBtn.addEventListener('click', onRandomBtnClick);
+    clearBtn.addEventListener('click', clearState);
+    runBtn.addEventListener('click', run);
+    pauseBtn.addEventListener('click', pause);
+    stepBtn.addEventListener('click', step);
+  }
+
+  function main() {
+    clearState();
+    bindEvents();
+  }
+
+  main();
+})();

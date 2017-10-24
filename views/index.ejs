@@ -34,10 +34,14 @@
 	<div class="game-controls">
 
 		<div class="row">
-			<button type="button" id="run-button"> Запустить </button>
-			<button type="button" id="step-button"> Шаг </button>
-			<button type="button" id="pause-button"> Стоп </button>
-			<button type="button" id="clear-button"> Очистить </button>
+			<button type="button" id="run-button"
+			        class="config-button"> Запустить </button>
+			<button type="button" id="step-button"
+			        class="config-button"> Шаг </button>
+			<button type="button" id="pause-button"
+			        class="config-button"> Стоп </button>
+			<button type="button" id="clear-button"
+			        class="config-button"> Очистить </button>
 		</div>
 
 		<br>
@@ -54,7 +58,7 @@
 			<label>
 				Размер клетки:
 					<input type="range" step="10" id="js-range"
-						min="10" max="40" value="40">
+						min="20" max="40" value="40">
 					<output id="js-output">40</output>
 			</label>
 		</div>
@@ -74,6 +78,7 @@
 		        <optgroup label="Флип-флопы">
 		        	<option value="">Мигалка</option>
 		        	<option value="">Навигационные огни</option>
+		        	<option value="">Жаба</option>
 		        </optgroup>
 
 						<optgroup label="Долгожители">
