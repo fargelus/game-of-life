@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const http = require('http');
 
 // Объект с конфигами
 const patternsObject = {};
@@ -20,8 +21,9 @@ filenames.forEach((item) => {
 // port
 const port = 3000;
 
-// Init app
+// // Init app
 const app = express();
+const server = http.Server(app);
 
 // Template engine -- EJS
 app.set('view engine', 'ejs');
@@ -31,8 +33,8 @@ app.get('/', (req, res) => {
   res.render('index', { config: JSON.stringify(patternsObject) });
 });
 
-// Serve static in root folder
+// Serve static in root static folder
 app.use(express.static('./static'));
 
 // Port listening
-app.listen(port, () => {});
+server.listen(port);

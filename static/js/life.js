@@ -60,8 +60,8 @@ class Life {
     this.alive = nextGen;
   }
 
-  addCell(x, y) {
-    const cell = new Cell(x, y, this.size);
+  addCell(x, y, size = this.size) {
+    const cell = new Cell(x, y, size);
     this.alive.push(cell);
   }
 
@@ -105,8 +105,8 @@ class Life {
     this.alive = [];
   }
 
-  set cellSize(newSz) {
-    this.size = newSz;
+  set aliveCells(newAlive) {
+    this.alive = newAlive;
   }
 }
 

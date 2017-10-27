@@ -5,6 +5,7 @@ const Helpers = require('./helpers');
 
 module.exports = (() => {
   const canvas = document.getElementsByTagName('canvas')[0];
+  const storageDB = window.localStorage;
 
   // ******************* Inputs ********************
   const jsRange = document.getElementById('js-range');
@@ -83,11 +84,15 @@ module.exports = (() => {
       const arrayDistraction = Helpers.getArrayDistract;
       const difference = arrayDistraction(prevAlive, currentAlive);
 
-      // // Если есть разница => отобразить изменения
+      // Если есть разница => отобразить изменения
       if (difference.length) {
         view.renderChips(currentAlive);
         genOutput.value = +genOutput.value + 1;
+        storageDB.setItem('life', JSON.stringify(currentAlive));
       }
+    } else {
+      // не сохраняем пустую конфигурацию
+      storageDB.clear();
     }
   }
 
@@ -143,15 +148,38 @@ module.exports = (() => {
     canvas.addEventListener('click', onCanvasClick);
 
     randomBtn.addEventListener('click', onRandomBtnClick);
-    clearBtn.addEventListener('click', clearState);
+    clearBtn.addEventListener('click', () => {
+      storageDB.clear();
+      clearState();
+    });
+
     runBtn.addEventListener('click', run);
     pauseBtn.addEventListener('click', pause);
     stepBtn.addEventListener('click', step);
   }
 
+  function restorePreviousState() {
+    const initConfig = storageDB.getItem('life');
+    if (initConfig) {
+      const lostConf = JSON.parse(initConfig);
+      const len = lostConf.length;
+      const cellSize = lostConf[0].size;
+      for (let i = 0; i < len; i += 1) {
+        life.addCell(
+          lostConf[i].cellX,
+          lostConf[i].cellY,
+          cellSize,
+        );
+      }
+
+      view.renderChips(life.aliveCells);
+    }
+  }
+
   function main() {
     clearState();
     bindEvents();
+    restorePreviousState();
   }
 
   main();
