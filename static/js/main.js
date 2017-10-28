@@ -5,7 +5,6 @@ const Helpers = require('./helpers');
 
 module.exports = (() => {
   const canvas = document.getElementsByTagName('canvas')[0];
-  const storageDB = window.localStorage;
   const configSelect = document.getElementById('config-select');
 
   const nameToCoordsConfigMap = {};
@@ -33,12 +32,6 @@ module.exports = (() => {
   const view = new View(canvas);
   const life = new Life([], +jsRange.value);
 
-  function updateAliveCellsInStats() {
-    const alive = life.aliveCells;
-    // Обновим инф-ю о живых клетках в статистике
-    aliveCellsCounter.value = alive.length;
-  }
-
   function onCanvasClick(evt) {
     const screenX = evt.pageX;
     const screenY = evt.pageY;
@@ -51,14 +44,21 @@ module.exports = (() => {
     }
 
     view.renderChips(life.aliveCells);
-    updateAliveCellsInStats();
+    aliveCellsCounter.value = (+aliveCellsCounter.value) + 1;
+
+    // Если перед добавлением клетки доска была пуста
+    // на всякий случай зануляем поколение
+    if (life.aliveCells.length - 1 === 0) {
+      genOutput.value = 0;
+    }
   }
 
   function onRandomBtnClick() {
     life.makeRandomConfig(view.dimensionX, view.dimensionY);
     view.renderChips(life.aliveCells);
 
-    updateAliveCellsInStats();
+    aliveCellsCounter.value = life.aliveCells.length;
+    genOutput.value = 0;
   }
 
   function clearState() {
@@ -70,7 +70,7 @@ module.exports = (() => {
     view.setBoardScale(cellSize);
     view.createBoard();
 
-    updateAliveCellsInStats();
+    aliveCellsCounter.value = 0;
     genOutput.value = 0;
     allCells.value = view.dimensionX * view.dimensionY;
   }
@@ -91,12 +91,12 @@ module.exports = (() => {
       if (difference.length) {
         view.renderChips(currentAlive);
         genOutput.value = +genOutput.value + 1;
-        storageDB.setItem('life', JSON.stringify(currentAlive));
+        aliveCellsCounter.value = currentAlive.length;
+        return true;
       }
-    } else {
-      // не сохраняем пустую конфигурацию
-      storageDB.clear();
     }
+
+    return false;
   }
 
   function convertSpeedInTime(speed) {
@@ -129,15 +129,16 @@ module.exports = (() => {
         timeDelay = currentDelay;
       }
 
-      step();
-      run.intervalId = setInterval(requestDelay, timeDelay);
+      const isContinue = step();
+      if (isContinue) {
+        run.intervalId = setInterval(requestDelay, timeDelay);
+      }
     }, timeDelay);
   }
 
   function pause() {
     clearInterval(run.intervalId);
   }
-
 
   function bindEvents() {
     jsRange.addEventListener('input', () => {
@@ -152,7 +153,7 @@ module.exports = (() => {
 
     randomBtn.addEventListener('click', onRandomBtnClick);
     clearBtn.addEventListener('click', () => {
-      storageDB.clear();
+      pause();
       clearState();
     });
 
@@ -174,24 +175,6 @@ module.exports = (() => {
 
       view.renderChips(life.aliveCells);
     });
-  }
-
-  function restorePreviousState() {
-    const initConfig = storageDB.getItem('life');
-    if (initConfig) {
-      const lostConf = JSON.parse(initConfig);
-      const len = lostConf.length;
-      const cellSize = lostConf[0].size;
-      for (let i = 0; i < len; i += 1) {
-        life.addCell(
-          lostConf[i].cellX,
-          lostConf[i].cellY,
-          cellSize,
-        );
-      }
-
-      view.renderChips(life.aliveCells);
-    }
   }
 
   /* Desc: Считывает конфигурационные файлы в массив
@@ -327,9 +310,10 @@ module.exports = (() => {
 
     clearState();
     fillConfigMap();
-    restorePreviousState();
 
     bindEvents();
+
+    // onRandomBtnClick();
   }
 
   main();

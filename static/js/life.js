@@ -87,8 +87,8 @@ class Life {
       const row = getRandom(dimensionY);
       const col = getRandom(dimensionX);
 
-      const x = row * this.size;
-      const y = col * this.size;
+      const y = row * this.size;
+      const x = col * this.size;
 
       const cell = new Cell(x, y, this.size);
 

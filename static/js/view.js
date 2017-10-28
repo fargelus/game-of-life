@@ -191,7 +191,6 @@ class View {
     this.createBoard();
 
     // this.makeToroid(chips);
-
     let isoCoordX = 0;
     let isoCoordY = 0;
 
