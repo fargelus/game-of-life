@@ -22,6 +22,16 @@ module.exports = (function Helpers() {
     return arr;
   }
 
+  /* Desc: Получить к-ты центра
+     Input(width -> Number, height -> Number)
+     Output(CenterObj -> Array):
+          К-ты центра по оси абсцисс/ординат. */
+  function getCenterCoord(width, height) {
+    const centerX = Math.floor(width / 2);
+    const centerY = Math.floor(height / 2);
+    return [].concat(centerX, centerY);
+  }
+
   // содержит ли массив объект
   unit.containsObject = containsObject;
 
@@ -29,6 +39,8 @@ module.exports = (function Helpers() {
   unit.getArrayDistract = getArrayDistract;
 
   unit.fillArrayWithValue = fillArrayWithValue;
+
+  unit.getCenterCoord = getCenterCoord;
 
   return unit;
 }());

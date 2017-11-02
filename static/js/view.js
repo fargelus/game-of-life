@@ -50,8 +50,10 @@ class View {
 
   [initBrick]() {
     // для расчета кол-ва тайлов
-    const cnvCenterX = this.cnv.width / 2;
-    const cnvCenterY = this.cnv.height / 2;
+    const [cnvCenterX, cnvCenterY] = Helpers.getCenterCoord(
+      this.cnv.width,
+      this.cnv.height,
+    );
 
     // Кол-во тайлов на грани ромба
     this.tileNumberEdge = parseInt(cnvCenterX /
@@ -60,6 +62,15 @@ class View {
     // Кол-во тайлов на диагонали ромба
     this.tileNumberDiagonal = parseInt(cnvCenterY /
                                        this.brickSize, 10);
+
+    // При изм-ии размера доски - центр перерасчитывается
+    this.centerBoard = Helpers.getCenterCoord(
+      this.tileNumberEdge,
+      this.tileNumberDiagonal,
+    );
+
+    this.centerBoard[0] *= this.brickSize;
+    this.centerBoard[1] *= this.brickSize;
 
     // цвет
     // color alias
@@ -182,6 +193,36 @@ class View {
     return bound - Math.abs(coord % bound);
   }
 
+  makeChipsEnclose(chips) {
+    const width = this.tileNumberEdge * this.brickSize;
+    const height = this.tileNumberDiagonal * this.brickSize;
+
+    const offsetChips = chips.filter((elem) => {
+      const isBeyondX = View.isCoordOverBound(elem.x, width);
+      const isBeyondY = View.isCoordOverBound(elem.y, height);
+      return isBeyondX || isBeyondY;
+    });
+
+    let enclosingChips = [];
+    if (offsetChips.length !== 0) {
+      enclosingChips = offsetChips.map((elem) => {
+        let chipsX = elem.x;
+        let chipsY = elem.y;
+
+        if (View.isCoordOverBound(chipsX, width)) {
+          chipsX = View.calculateOffsetCoord(chipsX, width);
+        }
+
+        if (View.isCoordOverBound(chipsY, height)) {
+          chipsY = View.calculateOffsetCoord(chipsY, height);
+        }
+
+        return { x: chipsX, y: chipsY };
+      });
+    }
+
+    return enclosingChips;
+  }
 
   /* Desc: Расположить фишки по порядку
              на доске(решение проблемы проекции)
@@ -190,12 +231,22 @@ class View {
   renderChips(chips) {
     this.createBoard();
 
-    // this.makeToroid(chips);
+    // Чтобы не было побочных эффектов
+    const renderedChips = chips.slice();
+
+    // Замкнуть координаты фишек отн-но доски
+    const enclosedChips = this.makeChipsEnclose(chips);
+    const enclosedLen = enclosedChips.length;
+    if (enclosedLen > 0) {
+      for (let i = 0; i < enclosedLen; i += 1) {
+        renderedChips.push(enclosedChips[i]);
+      }
+    }
+
     let isoCoordX = 0;
     let isoCoordY = 0;
 
     // Сохраним к-ты отрисованных клеток
-    const renderedChips = [];
     for (let i = 0; i < this.tileNumberDiagonal; i += 1) {
       isoCoordY = i * this.brickSize;
 
@@ -205,42 +256,9 @@ class View {
         const isometricCoords = { x: isoCoordX, y: isoCoordY };
 
         // гарантируем порядок расположения фишек
-        if (Helpers.containsObject(chips, isometricCoords)) {
+        if (Helpers.containsObject(renderedChips, isometricCoords)) {
           this.placeTile(isoCoordX, isoCoordY, 0, this.cube);
-          renderedChips.push(isometricCoords);
         }
-      }
-    }
-
-    // Если некоторые клетки не отрисовали => они
-    // вышли за пределы доски
-    if (renderedChips.length !== chips.length) {
-      const difference = Helpers.getArrayDistract;
-      const offsetChips = difference(chips, renderedChips);
-      const offsetLen = offsetChips.length;
-
-      const width = this.tileNumberEdge * this.brickSize;
-      const height = this.tileNumberDiagonal * this.brickSize;
-
-      for (let i = 0; i < offsetLen; i += 1) {
-        const chipX = offsetChips[i].x;
-        const chipY = offsetChips[i].y;
-
-        const isBeyondX = View.isCoordOverBound(chipX, width);
-        const isBeyondY = View.isCoordOverBound(chipY, height);
-
-        let toroidX = chipX;
-        let toroidY = chipY;
-
-        if (isBeyondX) {
-          toroidX = View.calculateOffsetCoord(chipX, width);
-        }
-
-        if (isBeyondY) {
-          toroidY = View.calculateOffsetCoord(chipY, height);
-        }
-
-        this.placeTile(toroidX, toroidY, 0, this.cube);
       }
     }
   }
@@ -251,6 +269,10 @@ class View {
 
   get dimensionY() {
     return this.tileNumberDiagonal;
+  }
+
+  get center() {
+    return this.centerBoard;
   }
 }
 

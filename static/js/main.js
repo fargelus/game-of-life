@@ -1,4 +1,8 @@
-// const Universe = require('./universe');
+/* Модуль main.js
+   Реализует паттерн медиатор.
+   Является посредником между Life(модель) и View.
+*/
+
 const View = require('./view');
 const Life = require('./life');
 const Helpers = require('./helpers');
@@ -7,6 +11,8 @@ module.exports = (() => {
   const canvas = document.getElementsByTagName('canvas')[0];
   const configSelect = document.getElementById('config-select');
 
+  // Отображение имени конфигурации(селект)
+  // в его ко-ты на доске
   const nameToCoordsConfigMap = {};
 
   // ******************* Inputs ********************
@@ -32,10 +38,15 @@ module.exports = (() => {
   const view = new View(canvas);
   const life = new Life(+jsRange.value);
 
+  /* Desc: Обработчик события клика на холсте.
+     Input(evt -> DOMEvents): Объект события.
+     Output(undefined) */
   function onCanvasClick(evt) {
+    // к-ты отн-но документа
     const screenX = evt.pageX;
     const screenY = evt.pageY;
 
+    // если клик за пределами доски, фишку не добавляем
     try {
       const { x, y } = view.transformScreenToView(screenX, screenY);
       life.addCell(x, y);
@@ -43,6 +54,7 @@ module.exports = (() => {
       console.log(err.message);
     }
 
+    // Отрисовка добавленной фишки
     view.renderChips(life.aliveCells);
     aliveCellsCounter.value = (+aliveCellsCounter.value) + 1;
 
@@ -53,29 +65,38 @@ module.exports = (() => {
     }
   }
 
+  /* Desc: Разместить на доске случ. конф-ю.
+     Input(undefined)
+     Output(undefined) */
   function onRandomBtnClick() {
+    // Заполним жизнь случайными клетками
     life.makeRandomConfig(view.dimensionX, view.dimensionY);
     view.renderChips(life.aliveCells);
 
+    // Обновим статистику
     aliveCellsCounter.value = life.aliveCells.length;
     genOutput.value = 0;
   }
 
+  /* Desc: Сброс всех фишек/клеток к нач.состоянию.
+     Input(undefined)
+     Output(undefined) */
   function clearState() {
-    const cellSize = +jsRange.value;
-
     life.clear();
-    life.cellSize = cellSize;
-
-    view.setBoardScale(cellSize);
     view.createBoard();
 
+    // Очистить статистику
     aliveCellsCounter.value = 0;
     genOutput.value = 0;
-    allCells.value = view.dimensionX * view.dimensionY;
+
+    configSelect.selectedIndex = 0;
   }
 
+  /* Desc: Сделать один шаг в игре.
+     Input(undefined)
+     Output(undefined) */
   function step() {
+    // Проверить предыдущее поколение
     const prevAlive = life.aliveCells;
     const prevAliveLen = prevAlive.length;
 
@@ -84,12 +105,26 @@ module.exports = (() => {
       life.nextGeneration();
       const currentAlive = life.aliveCells;
 
-      const arrayDistraction = Helpers.getArrayDistract;
-      const difference = arrayDistraction(prevAlive, currentAlive);
+      // Сделать ли следующий шаг
+      let makeStep = true;
 
-      // Если есть разница => отобразить изменения
-      if (difference.length) {
+      // Конфигурация является стабильной, если
+      // на очередном шаге кол-во фишек и их к-ты остаются
+      // неизменными.
+      const arrayDistraction = Helpers.getArrayDistract;
+      // Равны ли длины предыдущей конф-ии и текущей
+      const isEqualLen = (prevAliveLen === currentAlive.length);
+      // Если равны: проверяем координаты
+      if (isEqualLen) {
+        const difference = arrayDistraction(currentAlive, prevAlive);
+        // Равны ли к-ты
+        // Если длина > 0 => к-ты изменились, можем делать шаг
+        makeStep = (difference.length > 0);
+      }
+
+      if (makeStep) {
         view.renderChips(currentAlive);
+        // Обновим статистику
         genOutput.value = +genOutput.value + 1;
         aliveCellsCounter.value = currentAlive.length;
         return true;
@@ -99,6 +134,14 @@ module.exports = (() => {
     return false;
   }
 
+  /* Desc: Преобразовать скорость(в настройках)
+           в задержку вызова фун-ии step.
+     Input(speed -> Number):
+          Скорость расчета следующей конфигурации,
+          может изменяться пользователем.
+     Output(delay -> Number):
+          Интервал вызова фун-ии расчета следующего
+          поколения. */
   function convertSpeedInTime(speed) {
     const initialDelay = 500;
     const ratio = 2;
@@ -114,7 +157,12 @@ module.exports = (() => {
     return resDelay;
   }
 
+  /* Desc: Запуск игры.
+     Input(undefined)
+     Output(undefined) */
   function run() {
+    // Повторное нажатие на кнопку run,
+    // защита от зацикливания.
     if (run.intervalId !== undefined) clearInterval(run.intervalId);
 
     let timeDelay = convertSpeedInTime(+speedInput.value);
@@ -130,18 +178,21 @@ module.exports = (() => {
       }
 
       const isContinue = step();
+      // Условия останова.
       if (isContinue) {
         run.intervalId = setInterval(requestDelay, timeDelay);
       }
     }, timeDelay);
   }
 
+  /* Desc: Сделать паузу в игре.
+     Input(undefined)
+     Output(undefined) */
   function pause() {
     clearInterval(run.intervalId);
   }
 
-
-  /* Desc: Считывает конфигурационные файлы в массив
+  /* Desc: Считывает конфигурационные файлы в массив.
      Input(undefined)
      Output(Array[obj]): Объекты всех конф-ий */
   function readConfigData() {
@@ -153,6 +204,7 @@ module.exports = (() => {
     // только данные без имени файла
     const configData = Object.values(rawConfigData);
 
+    // преобразование в допустимый формат
     const configsObj = [];
     configData.forEach((currentData) => {
       const configObject = JSON.parse(currentData);
@@ -196,34 +248,38 @@ module.exports = (() => {
     }
   }
 
-  function getCenterCoord(width, height) {
-    const centerX = Math.floor(width / 2);
-    const centerY = Math.floor(height / 2);
-    return [].concat(centerX, centerY);
-  }
-
   /* Desc: Преобразование кодировки, описывающая форму
-           фигуры в координаты.
+           фигуры в координаты, отн-но собственной центральной оси.
+           Прим: 00 00 -> ((-40, -40), (-40, 0), (0, -40), (0, 0))
      Input(shapeEncoding -> String): Закодированная форма фигуры.
-     Output(coords -> Array): Массив координат со
-                              смещением отн-но центра. */
-  function createConfigCoords(shapeEncoding) {
+     Output(coords -> Array): Массив координат отн-но
+                              собственной центральной оси */
+  function transformEncodingToInnerCoord(shapeEncoding) {
+    // Пробел в кодировке -> новый ряд
     const lines = shapeEncoding.split(' ');
+
+    // Длина бокса
     const sizeY = lines.length;
 
+    // Ширина бокса === максимальной ширине ряда
     const lenMap = lines.map(elem => elem.length);
     const sizeX = Math.max(...lenMap);
 
-    const center = getCenterCoord(sizeX, sizeY);
+    // Рассчитать центральную ось фигуры
+    const center = Helpers.getCenterCoord(sizeX, sizeY);
+
     const objectSize = +jsRange.value;
 
     const coordObj = [];
+    // Сформировать к-ты отн-но центральной оси
     for (let i = 0; i < sizeY; i += 1) {
       const columnsCount = lines[i].length;
       const offsetY = center[1] - i;
 
       for (let j = 0; j < columnsCount; j += 1) {
         const type = lines[i][j];
+
+        // . -- это пустой объект(как цифра 0 -> отсуствие зн-я)
         if (type !== '.') {
           const offsetX = center[0] - j;
           coordObj.push([objectSize * offsetX, objectSize * offsetY]);
@@ -231,20 +287,27 @@ module.exports = (() => {
       }
     }
 
-    // TODO вычислить один раз и сохранить
-    const viewBoardCenter = getCenterCoord(
-      view.dimensionX,
-      view.dimensionY,
-    );
-    viewBoardCenter[0] *= objectSize;
-    viewBoardCenter[1] *= objectSize;
+    return coordObj;
+  }
 
-    const coordObjLen = coordObj.length;
+  /* Desc: Преобразование кодировки,
+           описывающая форму фигуры в координаты доски.
+     Input(shapeEncoding -> String): Закодированная форма фигуры.
+     Output(coords -> Array): Массив координат со
+                              смещением отн-но центра доски. */
+  function createConfigCoords(shapeEncoding) {
+    const innerCoord = transformEncodingToInnerCoord(shapeEncoding);
+
+    // К-ты центра доски
+    const viewBoardCenter = view.center;
+
+    const coordObjLen = innerCoord.length;
+    // Отображение внутренних координат на доску
     const mapCoordObjToViewBoard = [];
 
     for (let i = 0; i < coordObjLen; i += 1) {
-      const coordX = coordObj[i][0] + viewBoardCenter[0];
-      const coordY = coordObj[i][1] + viewBoardCenter[1];
+      const coordX = innerCoord[i][0] + viewBoardCenter[0];
+      const coordY = innerCoord[i][1] + viewBoardCenter[1];
       mapCoordObjToViewBoard.push([coordX, coordY]);
     }
 
@@ -258,24 +321,32 @@ module.exports = (() => {
      SideEffects: изменение configMap */
   function fillConfigMap() {
     const configData = readConfigData();
+
+    // Хэш имя: конфигурация
     const encodeFigureForm = {};
     configData.forEach((elem) => {
       encodeFigureForm[elem.name] = elem.configuration;
     });
 
+    // Хэш имя: к-ты на доске
     Object.keys(encodeFigureForm).forEach((figureName) => {
       nameToCoordsConfigMap[figureName] =
        createConfigCoords(encodeFigureForm[figureName]);
     });
   }
 
+  /* Desc: Поставить обработчики событий на элементы UI.
+     Input(undefined)
+     Output(undefined) */
   function bindEvents() {
     jsRange.addEventListener('input', () => {
       // input type=range
       const jsOutput = document.getElementById('js-output');
       jsOutput.innerHTML = jsRange.value;
 
+      view.setBoardScale(+jsRange.value);
       clearState();
+      allCells.value = view.dimensionX * view.dimensionY;
     });
 
     canvas.addEventListener('click', onCanvasClick);
@@ -306,13 +377,17 @@ module.exports = (() => {
       }
 
       view.renderChips(life.aliveCells);
+      aliveCellsCounter.value = life.aliveCells.length;
     });
   }
 
   function main() {
     renderConfigsInDOM();
 
-    clearState();
+    view.setBoardScale(+jsRange.value);
+    view.createBoard();
+    allCells.value = view.dimensionX * view.dimensionY;
+
     fillConfigMap();
 
     bindEvents();
