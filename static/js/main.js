@@ -30,7 +30,7 @@ module.exports = (() => {
   // **************** End Of Buttons ********************
 
   const view = new View(canvas);
-  const life = new Life([], +jsRange.value);
+  const life = new Life(+jsRange.value);
 
   function onCanvasClick(evt) {
     const screenX = evt.pageX;
@@ -82,8 +82,8 @@ module.exports = (() => {
     // Условия останова
     if (prevAliveLen > 0) {
       life.nextGeneration();
-
       const currentAlive = life.aliveCells;
+
       const arrayDistraction = Helpers.getArrayDistract;
       const difference = arrayDistraction(prevAlive, currentAlive);
 
@@ -140,42 +140,6 @@ module.exports = (() => {
     clearInterval(run.intervalId);
   }
 
-  function bindEvents() {
-    jsRange.addEventListener('input', () => {
-      // input type=range
-      const jsOutput = document.getElementById('js-output');
-      jsOutput.innerHTML = jsRange.value;
-
-      clearState();
-    });
-
-    canvas.addEventListener('click', onCanvasClick);
-
-    randomBtn.addEventListener('click', onRandomBtnClick);
-    clearBtn.addEventListener('click', () => {
-      pause();
-      clearState();
-    });
-
-    runBtn.addEventListener('click', run);
-    pauseBtn.addEventListener('click', pause);
-    stepBtn.addEventListener('click', step);
-
-    configSelect.addEventListener('change', (evt) => {
-      const select = evt.currentTarget;
-      const name = select.options[select.selectedIndex].text;
-      const conf = nameToCoordsConfigMap[name];
-
-      life.clear();
-      for (let i = 0; i < conf.length; i += 1) {
-        const x = conf[i][0];
-        const y = conf[i][1];
-        life.addCell(x, y);
-      }
-
-      view.renderChips(life.aliveCells);
-    });
-  }
 
   /* Desc: Считывает конфигурационные файлы в массив
      Input(undefined)
@@ -302,6 +266,46 @@ module.exports = (() => {
     Object.keys(encodeFigureForm).forEach((figureName) => {
       nameToCoordsConfigMap[figureName] =
        createConfigCoords(encodeFigureForm[figureName]);
+    });
+  }
+
+  function bindEvents() {
+    jsRange.addEventListener('input', () => {
+      // input type=range
+      const jsOutput = document.getElementById('js-output');
+      jsOutput.innerHTML = jsRange.value;
+
+      clearState();
+    });
+
+    canvas.addEventListener('click', onCanvasClick);
+
+    randomBtn.addEventListener('click', onRandomBtnClick);
+    clearBtn.addEventListener('click', () => {
+      pause();
+      clearState();
+    });
+
+    runBtn.addEventListener('click', run);
+    pauseBtn.addEventListener('click', pause);
+    stepBtn.addEventListener('click', step);
+
+    configSelect.addEventListener('change', (evt) => {
+      const select = evt.currentTarget;
+      const name = select.options[select.selectedIndex].text;
+
+      life.clear();
+      life.cellSize = +jsRange.value;
+      fillConfigMap();
+
+      const conf = nameToCoordsConfigMap[name];
+      for (let i = 0; i < conf.length; i += 1) {
+        const x = conf[i][0];
+        const y = conf[i][1];
+        life.addCell(x, y);
+      }
+
+      view.renderChips(life.aliveCells);
     });
   }
 

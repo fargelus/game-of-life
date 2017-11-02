@@ -2,15 +2,9 @@ const Cell = require('./cell');
 const Helpers = require('./helpers');
 
 class Life {
-  constructor(aliveCells, cellSize) {
+  constructor(cellSize) {
     this.alive = [];
     this.size = cellSize;
-
-    const aliveCellsLen = aliveCells.length;
-    for (let i = 0; i < aliveCellsLen; i += 1) {
-      const cell = new Cell(aliveCells[i].x, aliveCells[i].y, this.size);
-      this.alive.push(cell);
-    }
   }
 
   // На очередном шаге клетка узнает о живых соседях
@@ -101,12 +95,16 @@ class Life {
     }
   }
 
+  set aliveCells(newAlive) {
+    this.alive = newAlive;
+  }
+
   clear() {
     this.alive = [];
   }
 
-  set aliveCells(newAlive) {
-    this.alive = newAlive;
+  set cellSize(newSz) {
+    this.size = newSz;
   }
 }
 
