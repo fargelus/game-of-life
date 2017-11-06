@@ -19,3 +19,10 @@
    
 Пустая клетка:
 - Живых соседей === 3 => на следующем поколении клетка становится живым организмом
+
+## Конфигурации
+1). [Планер](https://codepen.io/fargelus/pen/zPBLKa).
+
+2). [Фигура-8](https://codepen.io/fargelus/pen/KyMxVx).
+
+3). [R-пентамино](https://codepen.io/fargelus/pen/WXxgOK).
