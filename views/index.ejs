@@ -34,13 +34,13 @@
 	<div class="game-controls">
 
 		<div class="row">
-			<button type="button" id="run-button"
+			<button type="button" id="js-run-button"
 			        class="config-button"> Запустить </button>
-			<button type="button" id="step-button"
+			<button type="button" id="js-step-button"
 			        class="config-button"> Шаг </button>
-			<button type="button" id="pause-button"
+			<button type="button" id="js-pause-button"
 			        class="config-button"> Стоп </button>
-			<button type="button" id="clear-button"
+			<button type="button" id="js-clear-button"
 			        class="config-button"> Очистить </button>
 		</div>
 
@@ -48,7 +48,7 @@
 		<div class="row">
 			<label>
 					Скорость:
-					<input type="number" id="speed-input" min="1"
+					<input type="number" id="js-speed-input" min="1"
 								 max="5" value="2">
 			</label>
 		</div>
@@ -65,16 +65,28 @@
 
 		<br>
 		<div class="row">
-				<label for="config-select"> Конфигурация: </label>
-				<select id="config-select">
+				<label for="js-config-select"> Конфигурация: </label>
+				<select id="js-config-select">
 					<option value="">None</option>
 				</select>
-				<button type="button" name="button" id="random-btn">
+				<button type="button" name="button" id="js-random-btn">
 					Рандом
 				</button>
+				<button type="button" name="button" id="js-save-btn">
+					Сохранить
+				</button>
+
+				<div id="js-save-config" class="save-config">
+					<label for="save-name-field">Сохранить как:</label>
+					<input type="text" name="" value="" id="js-save-name-field">
+					<span class="save-config-tooltip" id="js-save-config-tooltip">
+						Пожалуйста, введите уникальное имя.
+					</span>
+				</div>
+
 		</div>
 
-	<div id="config" style="display: none"> <%= config %> </div>
+	<div id="js-config" style="display: none"> <%= config %> </div>
 	<script src="bundle.js"></script>
 </body>
 </html>

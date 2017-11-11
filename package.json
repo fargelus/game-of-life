@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/fargelus/Game-of-Life#readme",
   "dependencies": {
+    "body-parser": "^1.18.2",
     "express": "^4.15.5",
     "obelisk.js": "^1.2.2"
   },

@@ -30,6 +30,10 @@ module.exports = class Cell {
     this.aliveNeighboursCounter = 0;
   }
 
+  /* Desc: Отладочный вывод.
+     Input(checkNeighbours -> Boolean):
+          Рекурсивная проверка.
+     Output(undefined) */
   debugPrint(checkNeighbours = true) {
     // add console.log for debug
     // const stateInfo = this.cellAlive ? 'Alive' : 'Dead';
@@ -41,7 +45,10 @@ module.exports = class Cell {
     }
   }
 
-  // окрестность Мура
+  /* Desc: Заполнить пустых соседей.
+           Соседи рассчитываются по окрестности Мура.
+     Input(undefined)
+     Output(undefined) */
   fillEmptyNeighbours() {
     for (let currentCellY = this.cellY - this.size;
       currentCellY <= this.cellY + this.size;
@@ -65,8 +72,9 @@ module.exports = class Cell {
     }
   }
 
-  // уточнить инф-ю о соседях и их кол-ве(!для живой клетки)
-  // на вход массив всех живых клеток
+  /* Desc: Обновить инф-ю о соседях живой клетки и их кол-ве.
+     Input(gridAliveCells -> Array): Массив всех живых клеток
+     Output(undefined) */
   updateNeighbours(gridAliveCells) {
     const neighbours = this.emptyNeighbours;
     const neighboursLen = neighbours.length;
@@ -86,6 +94,9 @@ module.exports = class Cell {
     this.decideDestiny(gridAliveCells);
   }
 
+  /* Desc: Клетка определяет свою дальнейшую судьбу.
+     Input(gridAliveCells -> Array): Массив всех живых клеток
+     Output(undefined) */
   decideDestiny(gridAliveCells) {
     // оставить только пустых соседей
     const { getArrayDistract } = Helpers;

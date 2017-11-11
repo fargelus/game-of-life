@@ -9,15 +9,21 @@ const Helpers = require('./helpers');
 
 module.exports = (() => {
   const canvas = document.getElementsByTagName('canvas')[0];
-  const configSelect = document.getElementById('config-select');
+  const configSelect = document.getElementById('js-config-select');
+
+  // save config options
+  const saveConfig = document.getElementById('js-save-config');
+  saveConfig.style.display = 'none';
 
   // Отображение имени конфигурации(селект)
   // в его ко-ты на доске
   const nameToCoordsConfigMap = {};
+  nameToCoordsConfigMap.updated = [];
 
   // ******************* Inputs ********************
   const jsRange = document.getElementById('js-range');
-  const speedInput = document.getElementById('speed-input');
+  const speedInput = document.getElementById('js-speed-input');
+  const saveNameInput = document.getElementById('js-save-name-field');
   // ******************* End Of Inputs *************
 
   // ***************** Stats *********************
@@ -28,11 +34,12 @@ module.exports = (() => {
   // ***************** End Of Stats **************
 
   // **************** Buttons ********************
-  const randomBtn = document.getElementById('random-btn');
-  const clearBtn = document.getElementById('clear-button');
-  const pauseBtn = document.getElementById('pause-button');
-  const stepBtn = document.getElementById('step-button');
-  const runBtn = document.getElementById('run-button');
+  const randomBtn = document.getElementById('js-random-btn');
+  const clearBtn = document.getElementById('js-clear-button');
+  const pauseBtn = document.getElementById('js-pause-button');
+  const stepBtn = document.getElementById('js-step-button');
+  const runBtn = document.getElementById('js-run-button');
+  const saveBtn = document.getElementById('js-save-btn');
   // **************** End Of Buttons ********************
 
   const view = new View(canvas);
@@ -196,7 +203,7 @@ module.exports = (() => {
      Input(undefined)
      Output(Array[obj]): Объекты всех конф-ий */
   function readConfigData() {
-    const configDOM = document.getElementById('config');
+    const configDOM = document.getElementById('js-config');
 
     // данные совместно с именем файла
     const rawConfigData = JSON.parse(configDOM.innerText);
@@ -223,6 +230,7 @@ module.exports = (() => {
     // Заполнить optgroup
     const categories = configData.map(elem => elem.category);
     const uniqueCategories = new Set(categories);
+
     uniqueCategories.forEach((elem) => {
       const optGroupHTML = `<optgroup label=${elem}></optgroup>`;
       configSelect.insertAdjacentHTML('beforeend', optGroupHTML);
@@ -335,6 +343,78 @@ module.exports = (() => {
     });
   }
 
+  /* Desc: Есть ли потомки с таким именем.
+     Input(parent -> DOMNode, childName -> String)
+     Output(result -> Boolean) */
+  function hasTheSameChildName(parent, childName) {
+    const childrens = parent.children;
+    const numberOfChildrens = childrens.length;
+    let result = false;
+
+    if (numberOfChildrens !== 0) {
+      for (let i = 0; i < numberOfChildrens; i += 1) {
+        if (childrens[i].innerText === childName) {
+          result = true;
+          break;
+        }
+      }
+    }
+
+    return result;
+  }
+
+  /* Desc: Зашифровать коорд-ты живых фишек в вид:
+           (00 00 -- прим. для Блока) и т.д.
+     Input(undefined)
+     Output(code -> String) */
+  function encodeBoardCells() {
+    const boardCells = life.aliveCells;
+
+    // Получить к-ты фишек по оси абсцисс
+    const allX = boardCells.map(elem => elem.cellX);
+    // Получить к-ты фишек по оси ординат
+    const allY = boardCells.map(elem => elem.cellY);
+
+    const cellSize = +jsRange.value;
+
+    // Рассчитаем ширину бокса
+    const maxX = Math.max(...allX);
+    const minX = Math.min(...allX);
+    const widthBox = ((maxX - minX) / cellSize) + 1;
+
+    // Рассчитаем высоту бокса
+    const maxY = Math.max(...allY);
+    const minY = Math.min(...allY);
+    const heightBox = ((maxY - minY) / cellSize) + 1;
+
+    const code = [];
+    // Текущая к-та по оси абсцисс
+    let iterX;
+    // Текущая к-та по оси ординат
+    let iterY = minY;
+    const isContain = Helpers.containsObject;
+    const coordObj = {};
+    for (let j = 0; j < heightBox; j += 1) {
+      iterY = minY + (j * cellSize);
+
+      for (let i = 0; i < widthBox; i += 1) {
+        iterX = minX + (i * cellSize);
+        coordObj.x = iterX;
+        coordObj.y = iterY;
+
+        if (isContain(boardCells, coordObj)) {
+          code.push('0');
+        } else {
+          code.push('.');
+        }
+      }
+
+      if (j !== heightBox - 1) code.push(' ');
+    }
+
+    return code.join('');
+  }
+
   /* Desc: Поставить обработчики событий на элементы UI.
      Input(undefined)
      Output(undefined) */
@@ -347,6 +427,10 @@ module.exports = (() => {
       view.setBoardScale(+jsRange.value);
       clearState();
       allCells.value = view.dimensionX * view.dimensionY;
+
+      // Обновить к-ты конфигураций в соотвествии с новым
+      // размером
+      fillConfigMap();
     });
 
     canvas.addEventListener('click', onCanvasClick);
@@ -367,7 +451,6 @@ module.exports = (() => {
 
       life.clear();
       life.cellSize = +jsRange.value;
-      fillConfigMap();
 
       const conf = nameToCoordsConfigMap[name];
       for (let i = 0; i < conf.length; i += 1) {
@@ -379,20 +462,108 @@ module.exports = (() => {
       view.renderChips(life.aliveCells);
       aliveCellsCounter.value = life.aliveCells.length;
     });
+
+    saveBtn.addEventListener('click', () => {
+      // Если на доске присуствуют фишки отобразить
+      // инпут для ввода имени сохраняемой конфигурации
+      const aliveLen = life.aliveCells.length;
+      if (aliveLen > 0 && saveConfig.style.display === 'none') {
+        saveConfig.style.display = 'inline-block';
+      }
+    });
+
+    // Side effects: nameToCoordsConfigMap changed
+    saveNameInput.addEventListener('change', (evt) => {
+      // Найти User optgroup в селекте
+      const userOptGroupSelector = 'optgroup[label="User"]';
+      let userOptGroup =
+          configSelect.querySelector(userOptGroupSelector);
+
+      // Если нет User optgroup => создать его
+      if (userOptGroup === null) {
+        const userOptGroupTag = '<optgroup label="User"></optgroup>';
+        configSelect.insertAdjacentHTML('beforeend', userOptGroupTag);
+        userOptGroup = configSelect.querySelector(userOptGroupSelector);
+      }
+
+      const textInput = evt.currentTarget;
+      const saveName = textInput.value;
+      const isNameUnique = !(hasTheSameChildName(userOptGroup, saveName));
+
+      if (isNameUnique) {
+        const option = `<option>${saveName}</option>`;
+        userOptGroup.insertAdjacentHTML('beforeend', option);
+
+        const newConf = {};
+        newConf.name = saveName;
+        newConf.category = 'User';
+        newConf.configuration = encodeBoardCells();
+
+        // Обновим инф-ю о новых конф-ях для последующего
+        // сохранения на диск
+        nameToCoordsConfigMap.updated.push(newConf);
+
+        // Новая конф-я ничем не отличается от старых
+        nameToCoordsConfigMap[saveName] =
+        createConfigCoords(newConf.configuration);
+
+        textInput.value = '';
+        document.getElementById('js-save-config').style.display = 'none';
+      } else {
+        // Tooltip
+        const tooltip = document.getElementById('js-save-config-tooltip');
+        tooltip.style.opacity = 1;
+        setTimeout(() => {
+          tooltip.style.opacity = 0;
+        }, 3000);
+      }
+    });
+
+    window.addEventListener('unload', () => {
+      const updatedConf = nameToCoordsConfigMap.updated;
+
+      // Если что-то изменилось отправляем на сервер
+      if (updatedConf.length > 0) {
+        const updatedData = JSON.stringify(updatedConf);
+        const xhr = new XMLHttpRequest();
+
+        // Делаем запрос синхронным, чтобы
+        // иметь воз-ть обработать ответ
+        xhr.open('POST', '/', false);
+
+        // Посылаем данные в формате JSON
+        xhr.setRequestHeader(
+          'Content-type',
+          'application/json; charset=utf-8',
+        );
+
+        xhr.onreadystatechange = () => {
+          if (xhr.readyState !== 4) return;
+          if (xhr.status !== 200) {
+            console.log('Something bad happened.');
+            console.log('Configs not saved.');
+          }
+        };
+
+        xhr.send(updatedData);
+      }
+    });
   }
 
   function main() {
-    renderConfigsInDOM();
-
+    // Нарисовать доску для фишек, обновить инф-ю
+    // об общем кол-ве клеток
     view.setBoardScale(+jsRange.value);
     view.createBoard();
     allCells.value = view.dimensionX * view.dimensionY;
 
+    // считать все конфигурации в селект
+    renderConfigsInDOM();
+
+    // заполним объект имя-конф-ии: к-ты
     fillConfigMap();
 
     bindEvents();
-
-    // onRandomBtnClick();
   }
 
   main();
